@@ -1,0 +1,104 @@
+[package]
+edition = "2021"
+name = "mom4x"
+version = "0.1.0"
+
+[workspace]
+resolver = "2"
+
+# Enable only a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies (incl. Bevy), but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.dev.dependencies]
+bevy = { features = ["dynamic"] }
+
+[profile.release]
+lto = "thin"
+
+[dependencies]
+iyes_loopless = "0.5"
+bevy-inspector-egui = "0.11"
+bevy_ecs_tilemap = { git = "https://github.com/StarArawn/bevy_ecs_tilemap", branch = "rewrite" }
+leafwing-input-manager = "0.3"
+bevy_kira_audio = "0.9"
+bevy_egui = "0.14"
+benimator = "3"
+egui = "0.18"
+strum = "0.24"
+strum_macros = "0.24"
+num-traits = "0.2"
+num-derive = "0.3"
+bevy_pixel_camera = { git = "https://github.com/drakmaniso/bevy_pixel_camera", branch = "main" }
+bevy_framepace = "0.4.0"
+
+[dependencies.bevy]
+version = "0.7"
+default-features = false
+features = [
+  # These are the default features:
+  # (re-enable whichever you like)
+  # Bevy functionality:
+  "animation", # Animation support
+  # "bevy_gilrs",         # Gamepad input support
+  # "bevy_audio",         # Builtin audio
+  "bevy_winit", # Window management
+  "x11", # Linux: Support X11 windowing system
+  "filesystem_watcher", # Asset hot-reloading
+  # "render",             # Graphics Rendering
+  ## "render" actually just includes:
+  ## (feel free to use just a subset of these, instead of "render")
+  "bevy_render", # Rendering framework core
+  "bevy_core_pipeline", # Higher-level rendering abstractions
+  "bevy_sprite", # 2D (sprites) rendering
+  # "bevy_pbr", # 3D (physically-based) rendering
+  # "bevy_gltf", # GLTF 3D assets format support
+  "bevy_text", # Text/font rendering
+  "bevy_ui", # UI toolkit
+  # File formats:
+  "png",
+  "hdr",
+  # "vorbis",
+  # These are other features that may be of interest:
+  # (add any of these that you need)
+  # Bevy functionality:
+  "wayland", # Linux: Support Wayland windowing system
+  "subpixel_glyph_atlas", # Subpixel antialiasing for text/fonts
+  "serialize", # Support for `serde` Serialize/Deserialize
+  # File formats:
+  "ktx2", # preferred format for GPU textures
+  "dds",
+  "jpeg",
+  "bmp",
+  "tga",
+  "basis-universal",
+  "zstd", # needed if using zstd in KTX2 files
+  #"flac",
+  #"mp3",
+  #"wav",
+  # Development/Debug features:
+  # "dynamic",      # Dynamic linking for faster compile-times
+  # "trace",        # Enable tracing for performance measurement
+  # "trace_tracy",  # Tracing using `tracy`
+  # "trace_chrome", # Tracing using the Chrome format
+  # "wgpu_trace",   # WGPU/rendering tracing
+
+]
+
+[dependencies.bevy_asset_loader]
+git = "https://github.com/freiksenet/bevy_asset_loader"
+branch = "stageless"
+features = ["stageless", "2d"]
+
+[build-dependencies]
+cargo-dylint = { version = "2.0.2" }
+dylint-link = { version = " 2.0.2 " }
+
+[workspace.metadata.dylint]
+libraries = [
+  { git = "https://github.com/MinerSebas/bevy_lint", branch = "main" },
+]

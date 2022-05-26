@@ -1,10 +1,8 @@
-
-use std::{cmp::min};
-
+use std::cmp::min;
 
 use strum_macros::{EnumDiscriminants, EnumIter};
 
-use bevy::{prelude::*};
+use bevy::prelude::*;
 
 use bevy_ecs_tilemap::{
     map::{
@@ -206,46 +204,42 @@ pub struct TilemapLayerManager {
 
 impl TilemapLayerManager {
     pub fn new(commands: &mut Commands, world: &game::map::GameWorld) -> TilemapLayerManager {
-        let mut tilemap_layers = Vec::new();
-        tilemap_layers.push((
-            (TilemapLayerType::Background, 50.),
-            TilemapLayer::new(commands, world, &TilemapLayerType::Background, 50.),
-        ));
-        tilemap_layers.push((
-            (TilemapLayerType::Base, 1.),
-            TilemapLayer::new(commands, world, &TilemapLayerType::Base, 1.),
-        ));
-
-        tilemap_layers.push((
-            (TilemapLayerType::Connectors, 2.),
-            TilemapLayer::new(commands, world, &TilemapLayerType::Connectors, 2.),
-        ));
-
-        tilemap_layers.push((
-            (TilemapLayerType::Connectors, 3.),
-            TilemapLayer::new(commands, world, &TilemapLayerType::Connectors, 3.),
-        ));
-
-        tilemap_layers.push((
-            (TilemapLayerType::Connectors, 4.),
-            TilemapLayer::new(commands, world, &TilemapLayerType::Connectors, 4.),
-        ));
-
-        tilemap_layers.push((
-            (TilemapLayerType::Connectors, 5.),
-            TilemapLayer::new(commands, world, &TilemapLayerType::Connectors, 5.),
-        ));
-
-        tilemap_layers.push((
-            (TilemapLayerType::Sites, 7.),
-            TilemapLayer::new(commands, world, &TilemapLayerType::Sites, 7.),
-        ));
-
-        tilemap_layers.push((
-            (TilemapLayerType::Borders, 10.),
-            TilemapLayer::new(commands, world, &TilemapLayerType::Borders, 10.),
-        ));
-        TilemapLayerManager { tilemap_layers }
+        TilemapLayerManager {
+            tilemap_layers: vec![
+                (
+                    (TilemapLayerType::Background, 50.),
+                    TilemapLayer::new(commands, world, &TilemapLayerType::Background, 50.),
+                ),
+                (
+                    (TilemapLayerType::Base, 1.),
+                    TilemapLayer::new(commands, world, &TilemapLayerType::Base, 1.),
+                ),
+                (
+                    (TilemapLayerType::Connectors, 2.),
+                    TilemapLayer::new(commands, world, &TilemapLayerType::Connectors, 2.),
+                ),
+                (
+                    (TilemapLayerType::Connectors, 3.),
+                    TilemapLayer::new(commands, world, &TilemapLayerType::Connectors, 3.),
+                ),
+                (
+                    (TilemapLayerType::Connectors, 4.),
+                    TilemapLayer::new(commands, world, &TilemapLayerType::Connectors, 4.),
+                ),
+                (
+                    (TilemapLayerType::Connectors, 5.),
+                    TilemapLayer::new(commands, world, &TilemapLayerType::Connectors, 5.),
+                ),
+                (
+                    (TilemapLayerType::Sites, 7.),
+                    TilemapLayer::new(commands, world, &TilemapLayerType::Sites, 7.),
+                ),
+                (
+                    (TilemapLayerType::Borders, 10.),
+                    TilemapLayer::new(commands, world, &TilemapLayerType::Borders, 10.),
+                ),
+            ],
+        }
     }
 
     pub fn insert_tile_bundle(

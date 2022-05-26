@@ -1,16 +1,9 @@
-
-
 use std::collections::HashMap;
 
-use strum::IntoEnumIterator;
-
-
-use bevy::{prelude::*};
+use bevy::prelude::*;
 
 use bevy_ecs_tilemap::{
-    map::{
-        Tilemap2dSize,
-    },
+    map::Tilemap2dSize,
     tiles::{Tile2dStorage, TileBundle, TilePos2d, TileTexture},
 };
 

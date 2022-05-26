@@ -1,8 +1,8 @@
 
+#![allow(clippy::forget_non_drop)]
 
 use bevy::prelude::*;
 use bevy::window::exit_on_window_close_system;
-
 
 use iyes_loopless::prelude::*;
 

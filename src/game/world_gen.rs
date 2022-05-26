@@ -1,4 +1,4 @@
-use bevy::ecs::schedule::StateData;
+
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use iyes_loopless::prelude::*;
@@ -20,7 +20,7 @@ pub fn build_world(mut commands: Commands, config: Res<config::EngineConfig>) {
                 }
             }
         })
-        .with_children(|world| build_units(world));
+        .with_children(build_units);
     commands.insert_resource(NextState(config.after_load_world));
 }
 

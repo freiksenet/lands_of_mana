@@ -1,17 +1,17 @@
-use num_derive::FromPrimitive;
-use std::{cmp::min, collections::HashMap};
 
-use strum::IntoEnumIterator;
-use strum_macros::{Display, EnumDiscriminants, EnumIter};
+use std::{cmp::min};
 
-use bevy::{ecs::system::EntityCommands, prelude::*};
+
+use strum_macros::{EnumDiscriminants, EnumIter};
+
+use bevy::{prelude::*};
 
 use bevy_ecs_tilemap::{
     map::{
         Tilemap2dGridSize, Tilemap2dSize, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
         TilemapTexture,
     },
-    tiles::{Tile2dStorage, TileBundle, TilePos2d, TileTexture},
+    tiles::{Tile2dStorage, TileBundle, TilePos2d},
     TilemapBundle,
 };
 

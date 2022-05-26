@@ -2,12 +2,12 @@ use std::time::Duration;
 
 use benimator::*;
 use bevy::prelude::*;
-use bevy_ecs_tilemap::map::{Tilemap2dGridSize, Tilemap2dSize};
+
 use strum_macros::{EnumIter, EnumString};
 
 use crate::assets::CreatureAssets;
 use crate::game;
-use crate::render;
+
 
 pub trait UnitSprite {
     fn get_animation_frames(&self, animation_type: &AnimationType) -> Vec<benimator::Frame>;
@@ -22,7 +22,7 @@ impl UnitSprite for game::units::Unit {
             game::units::UnitType::DeathKnight => 360,
             game::units::UnitType::GiantSpider => 264,
         };
-        let start_animation_tile = (start_tile + *animation_type as usize);
+        let start_animation_tile = start_tile + *animation_type as usize;
         (start_animation_tile..start_animation_tile + 4)
             .map(|tile| {
                 benimator::Frame::new(
@@ -110,7 +110,7 @@ pub fn setup(
     );
     for (position, unit, figures) in units.iter() {
         let base_position =
-            Vec3::new(((position.x * 16) as f32), (position.y * 16) as f32, 0.) - world_midpoint;
+            Vec3::new((position.x * 16) as f32, (position.y * 16) as f32, 0.) - world_midpoint;
         let animation_frames = &unit.get_animation_frames(&AnimationType::Idle);
         let transforms = unit.get_figure_transforms(figures.health.len());
         for mut transform in transforms {

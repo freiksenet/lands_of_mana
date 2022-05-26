@@ -1,9 +1,9 @@
-use benimator::AnimationPlugin;
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+
+
 use bevy::prelude::*;
 use bevy::window::exit_on_window_close_system;
-use bevy_ecs_tilemap::Tilemap2dPlugin;
-use bevy_framepace::{FramepacePlugin, FramerateLimit};
+
+
 use iyes_loopless::prelude::*;
 
 mod assets;

@@ -1,19 +1,17 @@
-use iyes_loopless::state::NextState;
-use num_derive::FromPrimitive;
+
+
 use std::collections::HashMap;
 
 use strum::IntoEnumIterator;
-use strum_macros::{Display, EnumDiscriminants, EnumIter};
 
-use bevy::{ecs::system::EntityCommands, prelude::*};
+
+use bevy::{prelude::*};
 
 use bevy_ecs_tilemap::{
     map::{
-        Tilemap2dGridSize, Tilemap2dSize, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
-        TilemapTexture,
+        Tilemap2dSize,
     },
     tiles::{Tile2dStorage, TileBundle, TilePos2d, TileTexture},
-    TilemapBundle,
 };
 
 mod layers;
@@ -87,7 +85,7 @@ pub fn setup(
         }
     }
 
-    for (entity, tilemap_bundle, tilemap_layer_type) in
+    for (entity, tilemap_bundle, _tilemap_layer_type) in
         tilemap_layer_manager.drain_all_tilemaps_to_bundle(&tiles)
     {
         commands.entity(entity).insert_bundle(tilemap_bundle);
@@ -310,8 +308,8 @@ fn build_city_tiles(
         game::map::CityType::Elf => 1100,
     };
     let mut city_tiles = Vec::new();
-    for x in (0..4) {
-        for y in (0..4) {
+    for x in 0..4 {
+        for y in 0..4 {
             let position = TilePos2d {
                 x: game_position.x + x,
                 y: game_position.y + y,

@@ -1,4 +1,4 @@
-use bevy::{ecs::schedule::StateData, prelude::*};
+use bevy::{prelude::*};
 use bevy_asset_loader::{AssetCollection, AssetLoader};
 
 use crate::config;

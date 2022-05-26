@@ -1,4 +1,4 @@
-use bevy::{ecs::schedule::StateData, prelude::*};
+use bevy::{prelude::*};
 use bevy_pixel_camera::{PixelBorderPlugin, PixelCameraBundle, PixelCameraPlugin, PixelProjection};
 use iyes_loopless::prelude::*;
 

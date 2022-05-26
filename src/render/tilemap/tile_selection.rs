@@ -88,33 +88,33 @@ impl TerrainDescription for TerrainType {
         let center_offset = center.get_base_texture_id() * CONNECTOR_TERRAIN_SIZE;
 
         // check if terrain is a variant of a base, use connector tiles
-        if (base_variant == base_center_variant) {
+        if base_variant == base_center_variant {
             return get_variant_texture_id(corner).map(|id| id + base_offset);
         }
         // check if terrain is one of the sea types, here some seas (Ice, Swamp) are exclusive to their parent tiles
         // and will return None
-        else if (base_variant == TerrainType::Swamp
-            && base_center_variant == TerrainType::WaterSwamp)
+        else if base_variant == TerrainType::Swamp
+            && base_center_variant == TerrainType::WaterSwamp
         {
-            if (terrain == TerrainType::Swamp || terrain == TerrainType::SwampBog) {
+            if terrain == TerrainType::Swamp || terrain == TerrainType::SwampBog {
                 return get_water_texture_id(corner).map(|id| id + center_offset);
-            } else if (terrain == TerrainType::SwampReeds) {
+            } else if terrain == TerrainType::SwampReeds {
                 return get_water_special_texture_id(corner).map(|id| id + center_offset);
             }
-        } else if (base_variant == TerrainType::Snow && base_center_variant == TerrainType::Ice) {
-            if (terrain == TerrainType::Snow) {
+        } else if base_variant == TerrainType::Snow && base_center_variant == TerrainType::Ice {
+            if terrain == TerrainType::Snow {
                 return get_water_texture_id(corner).map(|id| id + center_offset);
-            } else if (terrain == TerrainType::SnowDune) {
+            } else if terrain == TerrainType::SnowDune {
                 return get_water_special_texture_id(corner).map(|id| id + center_offset);
             }
         }
         // check if terrain is water
-        else if (base_center_variant == TerrainType::Water) {
+        else if base_center_variant == TerrainType::Water {
             return get_water_texture_id(corner).map(|id| id + base_offset);
         }
         // normal connectors
-        else if (base_center_variant != TerrainType::WaterSwamp
-            && base_center_variant != TerrainType::Ice)
+        else if base_center_variant != TerrainType::WaterSwamp
+            && base_center_variant != TerrainType::Ice
         {
             return get_connector_texture_id(corner).map(|id| id + base_variant_offset);
         }

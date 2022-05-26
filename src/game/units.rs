@@ -20,8 +20,9 @@ pub struct Unit {
     pub unit_type: UnitType,
 }
 
-#[derive(Component, Clone, Copy, Debug, EnumString, EnumIter)]
+#[derive(Clone, Copy, Debug, EnumString, EnumIter)]
 pub enum UnitType {
+    DebugBox,
     Skeleton,
     DeathKnight,
     GiantSpider,

@@ -23,7 +23,6 @@ use self::tile_selection::TerrainCornersTexture;
 
 use crate::assets;
 use crate::game;
-use crate::state;
 
 pub fn setup(
     mut commands: Commands,
@@ -88,11 +87,11 @@ pub fn setup(
         }
     }
 
-    for (entity, tilemap_bundle) in tilemap_layer_manager.drain_all_tilemaps_to_bundle(&tiles) {
+    for (entity, tilemap_bundle, tilemap_layer_type) in
+        tilemap_layer_manager.drain_all_tilemaps_to_bundle(&tiles)
+    {
         commands.entity(entity).insert_bundle(tilemap_bundle);
     }
-
-    commands.insert_resource(NextState(state::GameState::InGame));
 }
 
 fn neighbors_to_corner(

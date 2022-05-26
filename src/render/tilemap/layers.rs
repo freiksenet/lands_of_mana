@@ -291,10 +291,11 @@ impl TilemapLayerManager {
     pub fn drain_all_tilemaps_to_bundle(
         &mut self,
         tiles: &ResMut<assets::TileAssets>,
-    ) -> Vec<(Entity, TilemapBundle)> {
+    ) -> Vec<(Entity, TilemapBundle, TilemapLayerType)> {
         let mut res = Vec::new();
-        for (_, layer) in self.tilemap_layers.drain(..) {
-            res.push(layer.get_tilemap_bundle(&tiles))
+        for ((layer_type, _), layer) in self.tilemap_layers.drain(..) {
+            let (entity, bundle) = layer.get_tilemap_bundle(tiles);
+            res.push((entity, bundle, layer_type));
         }
         res
     }

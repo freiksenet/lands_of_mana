@@ -10,6 +10,7 @@ impl Plugin for AssetLoadingPlugin {
         AssetLoader::new(state::GameState::LoadingAssets)
             .continue_to_state(state::GameState::LoadingWorld)
             .with_collection::<TileAssets>()
+            .with_collection::<CreatureAssets>()
             // .init_resource::<CombinedTileTexture>()
             .build(app);
     }
@@ -52,6 +53,19 @@ pub struct TileAssets {
     #[asset(path = "tiles/terrain_connectors.png")]
     pub terrain_connectors: Handle<Image>,
 
-    #[asset(path = "ui/windows.png")]
-    pub window: Handle<Image>,
+    #[asset(path = "tiles/fog_of_war_and_map.png")]
+    pub fog_of_war_and_map: Handle<Image>,
+
+    #[asset(path = "sites/sites.png")]
+    pub sites: Handle<Image>,
+
+    #[asset(path = "ui/ui.png")]
+    pub ui: Handle<Image>,
+}
+
+#[derive(AssetCollection)]
+pub struct CreatureAssets {
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 24, rows = 16,))]
+    #[asset(path = "creatures/creatures.png")]
+    pub creatures: Handle<TextureAtlas>,
 }

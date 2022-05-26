@@ -2,5 +2,6 @@
 pub enum GameState {
     LoadingAssets,
     LoadingWorld,
+    LoadingGraphics,
     InGame,
 }

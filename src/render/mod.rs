@@ -27,7 +27,8 @@ impl Plugin for RenderPlugin {
         .add_plugin(AnimationPlugin::default())
         .add_enter_system(self.config.load_graphics, tilemap::setup)
         .add_enter_system(self.config.load_graphics, units::setup)
-        .add_system(proceed_to_ready_state.run_in_state(self.config.load_graphics));
+        .add_system(proceed_to_ready_state.run_in_state(self.config.load_graphics))
+        .add_system(units::animations.run_in_state(self.config.run_game));
     }
 }
 

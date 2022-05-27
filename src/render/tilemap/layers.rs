@@ -2,7 +2,7 @@ use std::cmp::min;
 
 use strum_macros::{EnumDiscriminants, EnumIter};
 
-use bevy::prelude::*;
+use bevy::{ecs::system::EntityCommands, prelude::*};
 
 use bevy_ecs_tilemap::{
     map::{
@@ -30,7 +30,7 @@ pub enum TilemapLayer {
 
 impl TilemapLayer {
     pub fn new(
-        commands: &mut Commands,
+        child_builder: &mut ChildBuilder,
         world: &game::map::GameWorld,
         layer_type: &TilemapLayerType,
         z: f32,
@@ -46,20 +46,9 @@ impl TilemapLayer {
             },
         };
         let storage = Tile2dStorage::empty(size);
-        // storage.set(
-        //     &TilePos2d { x: 0, y: 0 },
-        //     Some(
-        //         commands
-        //             .spawn()
-        //             .insert_bundle(TileBundle {
-        //                 ..Default::default()
-        //             })
-        //             .id(),
-        //     ),
-        // );
         let layer = LayerInner {
             size,
-            entity: commands.spawn().id(),
+            entity: child_builder.spawn().id(),
             storage,
             z,
         };
@@ -94,12 +83,12 @@ impl TilemapLayer {
 
     pub fn insert_tile_bundle(
         &mut self,
+        builder: &mut ChildBuilder,
         tile_pos: &TilePos2d,
-        commands: &mut Commands,
         tile_bundle: TileBundle,
     ) {
         let layer = self.get_layer_mut();
-        let tile_entity = commands
+        let tile_entity = builder
             .spawn()
             .insert_bundle(TileBundle {
                 tilemap_id: TilemapId(layer.entity),
@@ -203,50 +192,54 @@ pub struct TilemapLayerManager {
 }
 
 impl TilemapLayerManager {
-    pub fn new(commands: &mut Commands, world: &game::map::GameWorld) -> TilemapLayerManager {
-        TilemapLayerManager {
-            tilemap_layers: vec![
-                (
-                    (TilemapLayerType::Background, 50.),
-                    TilemapLayer::new(commands, world, &TilemapLayerType::Background, 50.),
-                ),
-                (
-                    (TilemapLayerType::Base, 1.),
-                    TilemapLayer::new(commands, world, &TilemapLayerType::Base, 1.),
-                ),
-                (
-                    (TilemapLayerType::Connectors, 2.),
-                    TilemapLayer::new(commands, world, &TilemapLayerType::Connectors, 2.),
-                ),
-                (
-                    (TilemapLayerType::Connectors, 3.),
-                    TilemapLayer::new(commands, world, &TilemapLayerType::Connectors, 3.),
-                ),
-                (
-                    (TilemapLayerType::Connectors, 4.),
-                    TilemapLayer::new(commands, world, &TilemapLayerType::Connectors, 4.),
-                ),
-                (
-                    (TilemapLayerType::Connectors, 5.),
-                    TilemapLayer::new(commands, world, &TilemapLayerType::Connectors, 5.),
-                ),
-                (
-                    (TilemapLayerType::Sites, 7.),
-                    TilemapLayer::new(commands, world, &TilemapLayerType::Sites, 7.),
-                ),
-                (
-                    (TilemapLayerType::Borders, 10.),
-                    TilemapLayer::new(commands, world, &TilemapLayerType::Borders, 10.),
-                ),
-            ],
-        }
+    pub fn new(parent: &mut EntityCommands, world: &game::map::GameWorld) -> TilemapLayerManager {
+        let mut tilemap_layers = Vec::new();
+        parent.with_children(|builder| {
+            tilemap_layers.extend(
+                (vec![
+                    (
+                        (TilemapLayerType::Background, 50.),
+                        TilemapLayer::new(builder, world, &TilemapLayerType::Background, 50.),
+                    ),
+                    (
+                        (TilemapLayerType::Base, 1.),
+                        TilemapLayer::new(builder, world, &TilemapLayerType::Base, 1.),
+                    ),
+                    (
+                        (TilemapLayerType::Connectors, 2.),
+                        TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 2.),
+                    ),
+                    (
+                        (TilemapLayerType::Connectors, 3.),
+                        TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 3.),
+                    ),
+                    (
+                        (TilemapLayerType::Connectors, 4.),
+                        TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 4.),
+                    ),
+                    (
+                        (TilemapLayerType::Connectors, 5.),
+                        TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 5.),
+                    ),
+                    (
+                        (TilemapLayerType::Sites, 7.),
+                        TilemapLayer::new(builder, world, &TilemapLayerType::Sites, 7.),
+                    ),
+                    (
+                        (TilemapLayerType::Borders, 10.),
+                        TilemapLayer::new(builder, world, &TilemapLayerType::Borders, 10.),
+                    ),
+                ]),
+            );
+        });
+        TilemapLayerManager { tilemap_layers }
     }
 
     pub fn insert_tile_bundle(
         &mut self,
+        builder: &mut ChildBuilder,
         (tilemap_layer_type, z): (&TilemapLayerType, f32),
         tile_pos: &TilePos2d,
-        commands: &mut Commands,
         tile_bundle: TileBundle,
     ) {
         self.tilemap_layers
@@ -254,27 +247,27 @@ impl TilemapLayerManager {
             .find(|((layer_type, layer_z), _)| layer_type == tilemap_layer_type && *layer_z == z)
             .unwrap()
             .1
-            .insert_tile_bundle(tile_pos, commands, tile_bundle);
+            .insert_tile_bundle(builder, tile_pos, tile_bundle);
     }
 
     pub fn insert_terrain_bundles(
         &mut self,
+        builder: &mut ChildBuilder,
         tile_pos: &TilePos2d,
-        commands: &mut Commands,
         tile_bundles: &mut Vec<TileBundle>,
     ) {
         for (i, tile_bundle) in tile_bundles.drain(..min(tile_bundles.len(), 5)).enumerate() {
             match i {
                 0 => self.insert_tile_bundle(
+                    builder,
                     (&TilemapLayerType::Base, 1.),
                     tile_pos,
-                    commands,
                     tile_bundle,
                 ),
                 1..=4 => self.insert_tile_bundle(
+                    builder,
                     (&TilemapLayerType::Connectors, 1. + i as f32),
                     tile_pos,
-                    commands,
                     tile_bundle,
                 ),
                 _ => panic!("Too many layers"),

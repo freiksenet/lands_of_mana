@@ -1,4 +1,3 @@
-
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use iyes_loopless::prelude::*;
@@ -12,6 +11,10 @@ pub fn build_world(mut commands: Commands, config: Res<config::EngineConfig>) {
         .insert(map::GameWorld {
             width: 64,
             height: 32,
+        })
+        .insert_bundle(TransformBundle {
+            local: Transform::identity(),
+            global: GlobalTransform::identity(),
         })
         .with_children(|world| {
             for p_x in 0..4 {
@@ -100,128 +103,18 @@ fn build_units(entity: &mut ChildBuilder) {
     //     },
     //     figures: units::UnitFigures { health: vec![1, 1] },
     // });
-    entity.spawn().insert_bundle(units::UnitBundle {
-        position: map::Position { x: 37, y: 20 },
-        unit: units::Unit {
+    units::UnitBundle::insert_full(
+        &mut entity.spawn(),
+        units::Unit {
             unit_type: units::UnitType::Skeleton,
         },
-        figures: units::UnitFigures {
-            health: vec![1, 1, 1, 1],
+        map::Position { x: 37, y: 20 },
+    );
+    units::UnitBundle::insert_full(
+        &mut entity.spawn(),
+        units::Unit {
+            unit_type: units::UnitType::DebugBox,
         },
-    });
-
-    entity.spawn().insert_bundle(units::UnitBundle {
-        position: map::Position { x: 38, y: 20 },
-        unit: units::Unit {
-            unit_type: units::UnitType::Skeleton,
-        },
-        figures: units::UnitFigures {
-            health: vec![1, 1, 1],
-        },
-    });
-
-    entity.spawn().insert_bundle(units::UnitBundle {
-        position: map::Position { x: 39, y: 20 },
-        unit: units::Unit {
-            unit_type: units::UnitType::DeathKnight,
-        },
-        figures: units::UnitFigures { health: vec![1, 1] },
-    });
-
-    entity.spawn().insert_bundle(units::UnitBundle {
-        position: map::Position { x: 40, y: 20 },
-        unit: units::Unit {
-            unit_type: units::UnitType::GiantSpider,
-        },
-        figures: units::UnitFigures { health: vec![1] },
-    });
-    entity.spawn().insert_bundle(units::UnitBundle {
-        position: map::Position { x: 41, y: 20 },
-        unit: units::Unit {
-            unit_type: units::UnitType::Skeleton,
-        },
-        figures: units::UnitFigures { health: vec![1] },
-    });
-    // entity.spawn().insert_bundle(units::UnitBundle {
-    //     position: map::Position { x: 42, y: 20 },
-    //     unit: units::Unit {
-    //         unit_type: units::UnitType::DebugBox,
-    //     },
-    //     figures: units::UnitFigures { health: vec![1, 1] },
-    // });
-
-    // entity.spawn().insert_bundle(units::UnitBundle {
-    //     position: map::Position { x: 36, y: 19 },
-    //     unit: units::Unit {
-    //         unit_type: units::UnitType::DebugBox,
-    //     },
-    //     figures: units::UnitFigures { health: vec![1] },
-    // });
-    // entity.spawn().insert_bundle(units::UnitBundle {
-    //     position: map::Position { x: 37, y: 19 },
-    //     unit: units::Unit {
-    //         unit_type: units::UnitType::DebugBox,
-    //     },
-    //     figures: units::UnitFigures { health: vec![1] },
-    // });
-    // entity.spawn().insert_bundle(units::UnitBundle {
-    //     position: map::Position { x: 38, y: 19 },
-    //     unit: units::Unit {
-    //         unit_type: units::UnitType::DebugBox,
-    //     },
-    //     figures: units::UnitFigures { health: vec![1] },
-    // });
-    // entity.spawn().insert_bundle(units::UnitBundle {
-    //     position: map::Position { x: 39, y: 19 },
-    //     unit: units::Unit {
-    //         unit_type: units::UnitType::DebugBox,
-    //     },
-    //     figures: units::UnitFigures { health: vec![1] },
-    // });
-    // entity.spawn().insert_bundle(units::UnitBundle {
-    //     position: map::Position { x: 40, y: 19 },
-    //     unit: units::Unit {
-    //         unit_type: units::UnitType::DebugBox,
-    //     },
-    //     figures: units::UnitFigures { health: vec![1] },
-    // });
-    // entity.spawn().insert_bundle(units::UnitBundle {
-    //     position: map::Position { x: 40, y: 25 },
-    //     unit: units::Unit {
-    //         unit_type: units::UnitType::DebugBox,
-    //     },
-    //     figures: units::UnitFigures { health: vec![1] },
-    // });
-
-    entity.spawn().insert_bundle(units::UnitBundle {
-        position: map::Position { x: 39, y: 25 },
-        unit: units::Unit {
-            unit_type: units::UnitType::Skeleton,
-        },
-        figures: units::UnitFigures { health: vec![1] },
-    });
-
-    entity.spawn().insert_bundle(units::UnitBundle {
-        position: map::Position { x: 38, y: 25 },
-        unit: units::Unit {
-            unit_type: units::UnitType::DeathKnight,
-        },
-        figures: units::UnitFigures { health: vec![1] },
-    });
-
-    entity.spawn().insert_bundle(units::UnitBundle {
-        position: map::Position { x: 37, y: 25 },
-        unit: units::Unit {
-            unit_type: units::UnitType::GiantSpider,
-        },
-        figures: units::UnitFigures { health: vec![1] },
-    });
-
-    // entity.spawn().insert_bundle(units::UnitBundle {
-    //     position: map::Position { x: 36, y: 25 },
-    //     unit: units::Unit {
-    //         unit_type: units::UnitType::DebugBox,
-    //     },
-    //     figures: units::UnitFigures { health: vec![1] },
-    // });
+        map::Position { x: 0, y: 0 },
+    );
 }

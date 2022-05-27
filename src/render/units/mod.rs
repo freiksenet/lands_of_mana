@@ -1,17 +1,19 @@
+use std::collections::HashMap;
+use std::iter::zip;
 use std::time::Duration;
 
 use benimator::*;
 use bevy::prelude::*;
+use iyes_loopless::prelude::*;
 
 use strum_macros::{EnumIter, EnumString};
 
 use crate::assets::CreatureAssets;
 use crate::game;
 
-
 pub trait UnitSprite {
     fn get_animation_frames(&self, animation_type: &AnimationType) -> Vec<benimator::Frame>;
-    fn get_figure_transforms(&self, current_figures: usize) -> Vec<Transform>;
+    fn get_figure_transforms(&self) -> Vec<Transform>;
 }
 
 impl UnitSprite for game::units::Unit {
@@ -37,7 +39,7 @@ impl UnitSprite for game::units::Unit {
             .collect()
     }
 
-    fn get_figure_transforms(&self, current_figures: usize) -> Vec<Transform> {
+    fn get_figure_transforms(&self) -> Vec<Transform> {
         let max_figures = match self.unit_type {
             game::units::UnitType::Skeleton => 4,
             game::units::UnitType::DeathKnight => 2,
@@ -50,16 +52,15 @@ impl UnitSprite for game::units::Unit {
         };
         // those translations pretend that we have X figures on a 16x16 grid
         let mut figures_translations = match (self.unit_type, max_figures) {
-            (_, 2) => {
-                vec![Vec3::new(4., 0., 0.1), Vec3::new(4., 8., 0.)][..current_figures].to_vec()
-            }
+            (_, 2) => vec![Vec3::new(4., 0., 0.1), Vec3::new(4., 8., 0.)],
+
             (_, 4) => vec![
                 Vec3::new(10., 10., 0.1),
                 Vec3::new(10., 0., 0.2),
                 Vec3::new(0., 10., 0.0),
                 Vec3::new(0., 0., 0.1),
-            ][..current_figures]
-                .to_vec(),
+            ],
+
             (game::units::UnitType::DebugBox, _) => vec![Vec3::new(0., 0., 0.)],
             (_, _) => vec![Vec3::new(0., 0., 0.)],
         };
@@ -95,34 +96,75 @@ pub fn setup(
     creatures: Res<CreatureAssets>,
     mut animations: ResMut<Assets<SpriteSheetAnimation>>,
     world_query: Query<&game::map::GameWorld>,
-    units: Query<(
-        &game::map::Position,
-        &game::units::Unit,
-        &game::units::UnitFigures,
-    )>,
+    unit_query: Query<(Entity, &game::map::Position, &game::units::Unit)>,
+    figure_query: Query<(Entity, &Parent), With<game::units::UnitFigure>>,
 ) {
     let world = world_query.single();
-    // TODO: centered transform
     let world_midpoint = Vec3::new(
         (world.width * 16) as f32 / 2. - 8.,
         (world.height * 16) as f32 / 2. - 8.,
         -75.,
     );
-    for (position, unit, figures) in units.iter() {
+
+    let mut units_to_figures: HashMap<u32, Vec<Entity>> = HashMap::new();
+    for (entity, parent) in figure_query.iter() {
+        units_to_figures
+            .entry(parent.id())
+            .or_insert(Vec::new())
+            .push(entity);
+    }
+
+    for (unit_entity_id, mut figure_entities) in units_to_figures.drain() {
+        let unit_entity = Entity::from_raw(unit_entity_id);
+        let (_, position, unit) = unit_query.get(unit_entity).unwrap();
+
         let base_position =
             Vec3::new((position.x * 16) as f32, (position.y * 16) as f32, 0.) - world_midpoint;
+        commands.entity(unit_entity).insert_bundle(TransformBundle {
+            local: Transform::from_translation(base_position),
+            global: GlobalTransform::identity(),
+        });
         let animation_frames = &unit.get_animation_frames(&AnimationType::Idle);
-        let transforms = unit.get_figure_transforms(figures.health.len());
-        for mut transform in transforms {
-            transform.translation += base_position;
+        let transforms = unit.get_figure_transforms();
+
+        for (figure_entity, transform) in zip(figure_entities.drain(..), transforms) {
             commands
-                .spawn_bundle(SpriteSheetBundle {
+                .entity(figure_entity)
+                .insert_bundle(SpriteSheetBundle {
+                    sprite: TextureAtlasSprite {
+                        // TODO: initial index
+                        index: 0,
+                        ..Default::default()
+                    },
                     texture_atlas: creatures.creatures.clone(),
-                    transform,
                     ..Default::default()
                 })
-                .insert(animations.add(SpriteSheetAnimation::from_frames(animation_frames.clone())))
-                .insert(Play);
+                .insert_bundle(TransformBundle {
+                    global: GlobalTransform::identity(),
+                    local: transform,
+                })
+                .insert(
+                    animations.add(SpriteSheetAnimation::from_frames(animation_frames.clone())),
+                );
+        }
+    }
+}
+
+pub fn animations(
+    mut commands: Commands,
+    state: Res<CurrentState<game::InGameState>>,
+    animatable_query: Query<Entity, With<game::units::UnitFigure>>,
+) {
+    if state.is_changed() {
+        for entity in animatable_query.iter() {
+            match state.0 {
+                game::InGameState::Paused => {
+                    commands.entity(entity).remove::<Play>();
+                }
+                game::InGameState::Running => {
+                    commands.entity(entity).insert(Play);
+                }
+            };
         }
     }
 }

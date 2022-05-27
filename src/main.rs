@@ -1,8 +1,6 @@
-
 #![allow(clippy::forget_non_drop)]
 
 use bevy::prelude::*;
-use bevy::window::exit_on_window_close_system;
 
 use iyes_loopless::prelude::*;
 
@@ -10,6 +8,7 @@ mod assets;
 mod camera;
 mod config;
 mod game;
+mod input;
 mod render;
 
 fn main() {
@@ -37,8 +36,8 @@ fn main() {
         .add_loopless_state(config::EngineState::LoadingAssets);
 
     app.add_plugins(DefaultPlugins)
-        .add_system(bevy::input::system::exit_on_esc_system)
-        .add_system(exit_on_window_close_system)
+        .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
+        .add_plugin(input::InputPlugin { config })
         .add_plugin(assets::AssetLoadingPlugin { config })
         .add_plugin(game::GamePlugin { config })
         .add_plugin(render::RenderPlugin { config })

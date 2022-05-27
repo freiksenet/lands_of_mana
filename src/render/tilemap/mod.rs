@@ -18,15 +18,16 @@ use crate::game;
 pub fn setup(
     mut commands: Commands,
     tiles: ResMut<assets::TileAssets>,
-    world_query: Query<&game::map::GameWorld>,
+    world_query: Query<(Entity, &game::map::GameWorld)>,
     terrain_query: Query<(
+        Entity,
         &game::map::Position,
         &game::map::TerrainBase,
         Option<&game::map::ProvinceBorder>,
     )>,
-    city_query: Query<(&game::map::Position, &game::map::City)>,
+    city_query: Query<(Entity, &game::map::Position, &game::map::City)>,
 ) {
-    let game_world = world_query.single();
+    let (game_world_entity, game_world) = world_query.single();
 
     let size = Tilemap2dSize {
         x: game_world.width,
@@ -35,16 +36,22 @@ pub fn setup(
 
     let temp_storage = Tile2dStorage::empty(size);
 
-    let mut tilemap_layer_manager = layers::TilemapLayerManager::new(&mut commands, game_world);
-    build_background(&mut commands, &mut tilemap_layer_manager, &size);
+    let mut tilemap_layer_manager =
+        layers::TilemapLayerManager::new(&mut commands.entity(game_world_entity), game_world);
+
+    commands.entity(game_world_entity).with_children(|builder| {
+        builder.spawn().with_children(|builder| {
+            build_background(builder, &mut tilemap_layer_manager, &size);
+        });
+    });
 
     let mut pos_to_terrain: HashMap<&game::map::Position, game::map::TerrainType> = HashMap::new();
 
-    for (position, base, _) in terrain_query.iter() {
+    for (_, position, base, _) in terrain_query.iter() {
         pos_to_terrain.insert(position, base.terrain_type);
     }
 
-    for (position, base, _border_option) in terrain_query.iter() {
+    for (entity, position, base, _border_option) in terrain_query.iter() {
         let tile_pos: TilePos2d = TilePos2d {
             x: position.x,
             y: position.y,
@@ -64,18 +71,22 @@ pub fn setup(
                 ..Default::default()
             })
             .collect();
-        tilemap_layer_manager.insert_terrain_bundles(&tile_pos, &mut commands, &mut bundles);
+        commands.entity(entity).with_children(|builder| {
+            tilemap_layer_manager.insert_terrain_bundles(builder, &tile_pos, &mut bundles);
+        });
     }
 
-    for (position, city) in city_query.iter() {
-        for tile_bundle in build_city_tiles(position, city) {
-            tilemap_layer_manager.insert_tile_bundle(
-                (&layers::TilemapLayerType::Sites, 7.),
-                &tile_bundle.position,
-                &mut commands,
-                tile_bundle,
-            )
-        }
+    for (entity, position, city) in city_query.iter() {
+        commands.entity(entity).with_children(|builder| {
+            for tile_bundle in build_city_tiles(position, city) {
+                tilemap_layer_manager.insert_tile_bundle(
+                    builder,
+                    (&layers::TilemapLayerType::Sites, 7.),
+                    &tile_bundle.position,
+                    tile_bundle,
+                )
+            }
+        });
     }
 
     for (entity, tilemap_bundle, _tilemap_layer_type) in
@@ -115,7 +126,7 @@ fn unwrap_pos_to_terrain(
 }
 
 fn build_background(
-    commands: &mut Commands,
+    builder: &mut ChildBuilder,
     tilemap_layer_manager: &mut layers::TilemapLayerManager,
     size: &Tilemap2dSize,
 ) {
@@ -123,9 +134,9 @@ fn build_background(
         for y in 0..size.y + 12 {
             let left_pos = TilePos2d { x, y };
             tilemap_layer_manager.insert_tile_bundle(
+                builder,
                 (&layers::TilemapLayerType::Background, 50.),
                 &left_pos,
-                commands,
                 TileBundle {
                     position: left_pos,
                     texture: TileTexture(31),
@@ -137,9 +148,9 @@ fn build_background(
                 y,
             };
             tilemap_layer_manager.insert_tile_bundle(
+                builder,
                 (&layers::TilemapLayerType::Background, 50.),
                 &right_pos,
-                commands,
                 TileBundle {
                     position: right_pos,
                     texture: TileTexture(31),
@@ -153,9 +164,9 @@ fn build_background(
         for x in 6..size.x + 6 {
             let top_pos = TilePos2d { x, y };
             tilemap_layer_manager.insert_tile_bundle(
+                builder,
                 (&layers::TilemapLayerType::Background, 50.),
                 &top_pos,
-                commands,
                 TileBundle {
                     position: top_pos,
                     texture: TileTexture(31),
@@ -167,9 +178,9 @@ fn build_background(
                 y: size.y + 6 + y,
             };
             tilemap_layer_manager.insert_tile_bundle(
+                builder,
                 (&layers::TilemapLayerType::Background, 50.),
                 &bottom_pos,
-                commands,
                 TileBundle {
                     position: bottom_pos,
                     texture: TileTexture(31),
@@ -184,9 +195,9 @@ fn build_background(
         y: size.y + 5,
     };
     tilemap_layer_manager.insert_tile_bundle(
+        builder,
         (&layers::TilemapLayerType::Background, 50.),
         &left_top,
-        commands,
         TileBundle {
             position: left_top,
             texture: TileTexture(32),
@@ -198,9 +209,9 @@ fn build_background(
         y: size.y + 5,
     };
     tilemap_layer_manager.insert_tile_bundle(
+        builder,
         (&layers::TilemapLayerType::Background, 50.),
         &right_top,
-        commands,
         TileBundle {
             position: right_top,
             texture: TileTexture(34),
@@ -209,9 +220,9 @@ fn build_background(
     );
     let left_bottom = TilePos2d { x: 6, y: 6 };
     tilemap_layer_manager.insert_tile_bundle(
+        builder,
         (&layers::TilemapLayerType::Background, 50.),
         &left_bottom,
-        commands,
         TileBundle {
             position: left_bottom,
             texture: TileTexture(64),
@@ -223,9 +234,9 @@ fn build_background(
         y: 6,
     };
     tilemap_layer_manager.insert_tile_bundle(
+        builder,
         (&layers::TilemapLayerType::Background, 50.),
         &right_bottom,
-        commands,
         TileBundle {
             position: right_bottom,
             texture: TileTexture(66),
@@ -236,9 +247,9 @@ fn build_background(
     for x in 7..size.x + 5 {
         let bottom_tile = TilePos2d { x, y: 6 };
         tilemap_layer_manager.insert_tile_bundle(
+            builder,
             (&layers::TilemapLayerType::Background, 50.),
             &bottom_tile,
-            commands,
             TileBundle {
                 position: bottom_tile,
                 texture: TileTexture(65),
@@ -247,9 +258,9 @@ fn build_background(
         );
         let top_tile = TilePos2d { x, y: size.y + 5 };
         tilemap_layer_manager.insert_tile_bundle(
+            builder,
             (&layers::TilemapLayerType::Background, 50.),
             &top_tile,
-            commands,
             TileBundle {
                 position: top_tile,
                 texture: TileTexture(33),
@@ -261,9 +272,9 @@ fn build_background(
     for y in 7..size.y + 5 {
         let left_tile = TilePos2d { x: 6, y };
         tilemap_layer_manager.insert_tile_bundle(
+            builder,
             (&layers::TilemapLayerType::Background, 50.),
             &left_tile,
-            commands,
             TileBundle {
                 position: left_tile,
                 texture: TileTexture(48),
@@ -272,9 +283,9 @@ fn build_background(
         );
         let right_tile = TilePos2d { x: size.x + 5, y };
         tilemap_layer_manager.insert_tile_bundle(
+            builder,
             (&layers::TilemapLayerType::Background, 50.),
             &right_tile,
-            commands,
             TileBundle {
                 position: right_tile,
                 texture: TileTexture(50),

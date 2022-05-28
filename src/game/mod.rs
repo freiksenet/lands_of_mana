@@ -4,6 +4,7 @@ use leafwing_input_manager::prelude::*;
 
 use crate::config;
 
+pub mod actions;
 pub mod map;
 pub mod units;
 pub mod world_gen;
@@ -16,21 +17,28 @@ impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app.add_enter_system(self.config.load_world, world_gen::build_world)
             .add_loopless_state(InGameState::Paused)
-            .add_system(handle_pausing.run_in_state(self.config.run_game));
+            .add_plugin(InputManagerPlugin::<actions::WorldActions>::default())
+            .add_plugin(InputManagerPlugin::<actions::SelectActions>::default())
+            .add_system(
+                handle_world_actions
+                    .run_in_state(self.config.run_game)
+                    .label("game_actions")
+                    .after("input"),
+            );
     }
 }
 
-fn handle_pausing(
+fn handle_world_actions(
     mut commands: Commands,
-    state: Res<CurrentState<InGameState>>,
-    action_state_query: Query<&ActionState<Actions>>,
+    action_state_query: Query<&ActionState<actions::WorldActions>>,
 ) {
     let action_state = action_state_query.single();
-    if (action_state.just_pressed(Actions::TogglePause)) {
-        commands.insert_resource(NextState(match state.0 {
-            InGameState::Paused => InGameState::Running,
-            InGameState::Running => InGameState::Paused,
-        }));
+    if (action_state.just_pressed(actions::WorldActions::Pause)) {
+        commands.insert_resource(NextState(InGameState::Paused));
+    }
+
+    if (action_state.just_pressed(actions::WorldActions::Resume)) {
+        commands.insert_resource(NextState(InGameState::Running));
     }
 }
 
@@ -38,9 +46,4 @@ fn handle_pausing(
 pub enum InGameState {
     Paused,
     Running,
-}
-
-#[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug)]
-pub enum Actions {
-    TogglePause,
 }

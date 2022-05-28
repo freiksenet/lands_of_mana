@@ -1,9 +1,10 @@
 use bevy::ecs::system::EntityCommands;
 use bevy::prelude::*;
 use iyes_loopless::prelude::*;
+use leafwing_input_manager::prelude::*;
 
 use crate::config;
-use crate::game::{map, units};
+use crate::game::{actions, map, units};
 
 pub fn build_world(mut commands: Commands, config: Res<config::EngineConfig>) {
     commands
@@ -15,6 +16,10 @@ pub fn build_world(mut commands: Commands, config: Res<config::EngineConfig>) {
         .insert_bundle(TransformBundle {
             local: Transform::identity(),
             global: GlobalTransform::identity(),
+        })
+        .insert_bundle(InputManagerBundle::<actions::WorldActions> {
+            action_state: ActionState::default(),
+            input_map: InputMap::default(),
         })
         .with_children(|world| {
             for p_x in 0..4 {

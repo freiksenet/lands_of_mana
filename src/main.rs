@@ -5,11 +5,10 @@ use bevy::prelude::*;
 use iyes_loopless::prelude::*;
 
 mod assets;
-mod camera;
 mod config;
 mod game;
-mod input;
 mod render;
+mod ui;
 
 fn main() {
     let config = config::EngineConfig {
@@ -37,10 +36,9 @@ fn main() {
 
     app.add_plugins(DefaultPlugins)
         .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
-        .add_plugin(input::InputPlugin { config })
         .add_plugin(assets::AssetLoadingPlugin { config })
         .add_plugin(game::GamePlugin { config })
         .add_plugin(render::RenderPlugin { config })
-        .add_plugin(camera::CameraPlugin { config })
+        .add_plugin(ui::InputPlugin { config })
         .run();
 }

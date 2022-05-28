@@ -1,8 +1,11 @@
-use bevy::{prelude::*};
+use bevy::prelude::*;
 use bevy_pixel_camera::{PixelBorderPlugin, PixelCameraBundle, PixelCameraPlugin, PixelProjection};
 use iyes_loopless::prelude::*;
+use leafwing_input_manager::prelude::*;
 
 use crate::config;
+use crate::game;
+use crate::ui;
 
 pub struct CameraPlugin {
     pub config: config::EngineConfig,
@@ -17,8 +20,9 @@ impl Plugin for CameraPlugin {
             .add_enter_system(self.config.run_game, setup)
             .add_system_set(
                 ConditionSet::new()
+                    .label("input")
                     .run_in_state(self.config.run_game)
-                    .with_system(movement)
+                    .with_system(camera_control)
                     .into(),
             );
     }
@@ -33,15 +37,17 @@ fn setup(mut commands: Commands) {
 }
 
 // A simple camera system for moving and zooming the camera.
-fn movement(
-    keyboard_input: Res<Input<KeyCode>>,
-    world_query: Query<&crate::game::map::GameWorld>,
+fn camera_control(
+    input_action_query: Query<&ActionState<ui::InputActions>>,
+    world_query: Query<&game::map::GameWorld>,
     mut query: Query<(&mut Transform, &mut PixelProjection), With<Camera>>,
 ) {
     let game_world = world_query.single();
     let border_size_pixels = 6 * 16;
     let pixels_width = (game_world.width * 16 + border_size_pixels * 2) as f32;
     let pixels_height = (game_world.height * 16 + border_size_pixels * 2) as f32;
+
+    let input_action_state = input_action_query.single();
 
     for (mut transform, mut camera) in query.iter_mut() {
         let min = Vec3::new(
@@ -56,28 +62,28 @@ fn movement(
         );
         let mut direction = Vec3::ZERO;
 
-        if keyboard_input.pressed(KeyCode::A) {
+        if input_action_state.pressed(ui::InputActions::CameraMoveWest) {
             direction -= Vec3::new(1.0, 0.0, 0.0);
         }
 
-        if keyboard_input.pressed(KeyCode::D) {
+        if input_action_state.pressed(ui::InputActions::CameraMoveEast) {
             direction += Vec3::new(1.0, 0.0, 0.0);
         }
 
-        if keyboard_input.pressed(KeyCode::W) {
+        if input_action_state.pressed(ui::InputActions::CameraMoveNorth) {
             direction += Vec3::new(0.0, 1.0, 0.0);
         }
 
-        if keyboard_input.pressed(KeyCode::S) {
+        if input_action_state.pressed(ui::InputActions::CameraMoveSouth) {
             direction -= Vec3::new(0.0, 1.0, 0.0);
         }
 
-        if keyboard_input.pressed(KeyCode::Z) {
+        if input_action_state.pressed(ui::InputActions::CameraZoomIn) {
             let zoom = std::cmp::max(camera.zoom - 1, 3);
             camera.zoom = zoom;
         }
 
-        if keyboard_input.pressed(KeyCode::X) {
+        if input_action_state.pressed(ui::InputActions::CameraZoomOut) {
             let zoom = std::cmp::min(camera.zoom + 1, 10);
             camera.zoom = zoom;
         }

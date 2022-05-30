@@ -1,5 +1,3 @@
-use num_derive::FromPrimitive;
-use num_traits::FromPrimitive;
 /// Module that knows how to select tiles based on neighbors
 /// 1. Tile terrain determines the base tile, it is pushed to result tile list
 /// 2. List of corner tiles is selected
@@ -12,6 +10,9 @@ use num_traits::FromPrimitive;
 ///
 ///
 use std::{cmp::min, collections::BTreeMap, fmt::Debug, ops::Add};
+
+use num_derive::FromPrimitive;
+use num_traits::FromPrimitive;
 
 use super::game::map::TerrainType;
 

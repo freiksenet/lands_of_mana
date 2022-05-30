@@ -1,9 +1,6 @@
 use std::cmp::min;
 
-use strum_macros::{EnumDiscriminants, EnumIter};
-
 use bevy::{ecs::system::EntityCommands, prelude::*};
-
 use bevy_ecs_tilemap::{
     map::{
         Tilemap2dGridSize, Tilemap2dSize, Tilemap2dTextureSize, Tilemap2dTileSize, TilemapId,
@@ -12,9 +9,9 @@ use bevy_ecs_tilemap::{
     tiles::{Tile2dStorage, TileBundle, TilePos2d},
     TilemapBundle,
 };
+use strum_macros::{EnumDiscriminants, EnumIter};
 
-use super::assets;
-use super::game;
+use super::{assets, game};
 
 #[derive(Debug, Clone, EnumDiscriminants)]
 #[strum_discriminants(derive(EnumIter))]
@@ -195,42 +192,40 @@ impl TilemapLayerManager {
     pub fn new(parent: &mut EntityCommands, world: &game::map::GameWorld) -> TilemapLayerManager {
         let mut tilemap_layers = Vec::new();
         parent.with_children(|builder| {
-            tilemap_layers.extend(
-                (vec![
-                    (
-                        (TilemapLayerType::Background, 50.),
-                        TilemapLayer::new(builder, world, &TilemapLayerType::Background, 50.),
-                    ),
-                    (
-                        (TilemapLayerType::Base, 1.),
-                        TilemapLayer::new(builder, world, &TilemapLayerType::Base, 1.),
-                    ),
-                    (
-                        (TilemapLayerType::Connectors, 2.),
-                        TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 2.),
-                    ),
-                    (
-                        (TilemapLayerType::Connectors, 3.),
-                        TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 3.),
-                    ),
-                    (
-                        (TilemapLayerType::Connectors, 4.),
-                        TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 4.),
-                    ),
-                    (
-                        (TilemapLayerType::Connectors, 5.),
-                        TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 5.),
-                    ),
-                    (
-                        (TilemapLayerType::Sites, 7.),
-                        TilemapLayer::new(builder, world, &TilemapLayerType::Sites, 7.),
-                    ),
-                    (
-                        (TilemapLayerType::Borders, 10.),
-                        TilemapLayer::new(builder, world, &TilemapLayerType::Borders, 10.),
-                    ),
-                ]),
-            );
+            tilemap_layers.extend(vec![
+                (
+                    (TilemapLayerType::Background, 50.),
+                    TilemapLayer::new(builder, world, &TilemapLayerType::Background, 50.),
+                ),
+                (
+                    (TilemapLayerType::Base, 1.),
+                    TilemapLayer::new(builder, world, &TilemapLayerType::Base, 1.),
+                ),
+                (
+                    (TilemapLayerType::Connectors, 2.),
+                    TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 2.),
+                ),
+                (
+                    (TilemapLayerType::Connectors, 3.),
+                    TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 3.),
+                ),
+                (
+                    (TilemapLayerType::Connectors, 4.),
+                    TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 4.),
+                ),
+                (
+                    (TilemapLayerType::Connectors, 5.),
+                    TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 5.),
+                ),
+                (
+                    (TilemapLayerType::Sites, 7.),
+                    TilemapLayer::new(builder, world, &TilemapLayerType::Sites, 7.),
+                ),
+                (
+                    (TilemapLayerType::Borders, 10.),
+                    TilemapLayer::new(builder, world, &TilemapLayerType::Borders, 10.),
+                ),
+            ]);
         });
         TilemapLayerManager { tilemap_layers }
     }

@@ -1,8 +1,8 @@
 use benimator::AnimationPlugin;
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-
-use bevy::prelude::*;
-
+use bevy::{
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    prelude::*,
+};
 use bevy_ecs_tilemap::Tilemap2dPlugin;
 use bevy_framepace::{FramepacePlugin, FramerateLimit};
 use iyes_loopless::prelude::*;

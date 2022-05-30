@@ -1,10 +1,13 @@
-use bevy::{input::mouse::MouseWheel, prelude::*};
+use bevy::prelude::*;
+use bevy_pixel_camera::PixelProjection;
 use iyes_loopless::prelude::*;
+use kayak_ui::bevy::BevyKayakUIPlugin;
 use leafwing_input_manager::prelude::*;
 
 use crate::{config, game};
 
 mod camera;
+mod gui;
 pub struct InputPlugin {
     pub config: config::EngineConfig,
 }
@@ -14,7 +17,9 @@ impl Plugin for InputPlugin {
         app.add_system(bevy::input::system::exit_on_esc_system)
             .add_system(bevy::window::exit_on_window_close_system)
             .add_plugin(InputManagerPlugin::<InputActions>::default())
+            .add_plugin(BevyKayakUIPlugin)
             .add_enter_system(self.config.run_game, setup)
+            .add_enter_system(self.config.run_game, gui::setup)
             .add_system_set(
                 ConditionSet::new()
                     .label("input")
@@ -25,7 +30,15 @@ impl Plugin for InputPlugin {
             )
             .add_plugin(camera::CameraPlugin {
                 config: self.config,
-            });
+            })
+            .add_system_set(
+                ConditionSet::new()
+                    .label("gui")
+                    .run_in_state(self.config.run_game)
+                    .with_system(gui::bind_game_time)
+                    .with_system(gui::bind_game_state)
+                    .into(),
+            );
     }
 }
 
@@ -62,27 +75,27 @@ fn input_to_game_actions(
         || (input_action_state.just_pressed(InputActions::TogglePause)
             && game_state.0 == game::InGameState::Running)
     {
-        world_action_state.press(game::actions::WorldActions::Pause.clone())
+        world_action_state.press(game::actions::WorldActions::Pause)
     }
 
     if input_action_state.just_pressed(InputActions::Resume)
         || (input_action_state.just_pressed(InputActions::TogglePause)
             && game_state.0 == game::InGameState::Paused)
     {
-        world_action_state.press(game::actions::WorldActions::Resume.clone())
+        world_action_state.press(game::actions::WorldActions::Resume)
     }
 }
 
 fn interact(
     windows: Res<Windows>,
-    camera_transform_query: Query<(&Camera, &Transform), With<Camera>>,
+    camera_transform_query: Query<(&Camera, &Transform), With<PixelProjection>>,
     world_query: Query<&game::map::GameWorld>,
     input_action_query: Query<&ActionState<InputActions>>,
     mut selectable_query: Query<(&game::map::Position, &mut Selectable)>,
 ) {
     let input_action_state = input_action_query.single();
 
-    if (input_action_state.just_pressed(InputActions::Interact)) {
+    if input_action_state.just_pressed(InputActions::Interact) {
         let window = windows.get_primary().unwrap();
 
         if let Some(window_cursor_position) = window.cursor_position() {
@@ -97,9 +110,9 @@ fn interact(
             let cursor_position = world.pixel_position_to_position(world_pos);
 
             for (position, mut selectable) in selectable_query.iter_mut() {
-                if (&cursor_position == position) {
+                if &cursor_position == position {
                     selectable.is_selected = true;
-                } else if (selectable.is_selected) {
+                } else if selectable.is_selected {
                     selectable.is_selected = false;
                 }
             }

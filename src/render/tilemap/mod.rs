@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use bevy::prelude::*;
-
 use bevy_ecs_tilemap::{
     map::Tilemap2dSize,
     tiles::{Tile2dStorage, TileBundle, TilePos2d, TileTexture},
@@ -11,9 +10,7 @@ mod layers;
 mod tile_selection;
 
 use self::tile_selection::TerrainCornersTexture;
-
-use crate::assets;
-use crate::game;
+use crate::{assets, game};
 
 pub fn setup(
     mut commands: Commands,

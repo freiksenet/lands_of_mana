@@ -27,6 +27,11 @@ bevy_ecs_tilemap = { git = "https://github.com/StarArawn/bevy_ecs_tilemap", bran
 leafwing-input-manager = "0.3"
 bevy_kira_audio = "0.9"
 bevy_egui = "0.14"
+kayak_ui = { git = "https://github.com/StarArawn/kayak_ui", branch = "main" }
+bevy_kayak_ui = { git = "https://github.com/StarArawn/kayak_ui", branch = "main" }
+kayak_core = { git = "https://github.com/StarArawn/kayak_ui", branch = "main" }
+kayak_font = { git = "https://github.com/StarArawn/kayak_ui", branch = "main" }
+kayak_render_macros = { git = "https://github.com/StarArawn/kayak_ui", branch = "main" }
 benimator = "3"
 egui = "0.18"
 strum = "0.24"
@@ -90,8 +95,8 @@ features = [
 ]
 
 [dependencies.bevy_asset_loader]
-git = "https://github.com/freiksenet/bevy_asset_loader"
-branch = "stageless"
+git = "https://github.com/NiklasEi/bevy_asset_loader"
+rev = "ba1ab31"
 features = ["stageless", "2d"]
 
 [build-dependencies]

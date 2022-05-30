@@ -1,9 +1,7 @@
 use bevy::{ecs::system::EntityCommands, prelude::*};
-use leafwing_input_manager::prelude::*;
 use strum_macros::{EnumIter, EnumString};
 
-use crate::game::map;
-use crate::ui;
+use crate::{game::map, ui};
 
 #[derive(Component, Debug, Clone)]
 pub struct UnitFigure {

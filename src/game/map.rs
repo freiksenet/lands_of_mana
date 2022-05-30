@@ -1,6 +1,5 @@
-use strum_macros::{EnumIter, EnumString};
-
 use bevy::prelude::*;
+use strum_macros::{EnumIter, EnumString};
 
 #[derive(Component, Debug, Clone)]
 pub struct GameWorld {

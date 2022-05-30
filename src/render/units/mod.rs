@@ -1,16 +1,11 @@
-use std::collections::HashMap;
-use std::iter::zip;
-use std::time::Duration;
+use std::{collections::HashMap, iter::zip, time::Duration};
 
 use benimator::*;
 use bevy::prelude::*;
 use iyes_loopless::prelude::*;
-
 use strum_macros::{EnumIter, EnumString};
 
-use crate::assets::CreatureAssets;
-use crate::game;
-use crate::ui;
+use crate::{assets::CreatureAssets, game, ui};
 
 pub trait UnitSprite {
     fn get_default_tile_index(&self) -> usize;
@@ -161,7 +156,7 @@ pub fn animations(
 pub fn selected(
     mut commands: Commands,
     mut animations: ResMut<Assets<SpriteSheetAnimation>>,
-    unit_query: Query<(&game::units::Unit, &Children)>,
+    _unit_query: Query<(&game::units::Unit, &Children)>,
     figure_query: Query<(Entity, &Handle<SpriteSheetAnimation>), With<game::units::UnitFigure>>,
     selections_query: Query<
         (&game::units::Unit, &ui::Selectable, &Children),

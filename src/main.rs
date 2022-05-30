@@ -1,7 +1,9 @@
 #![allow(clippy::forget_non_drop)]
+#![allow(clippy::derive_partial_eq_without_eq)]
+#![allow(clippy::type_complexity)]
+#![feature(allocator_api)]
 
 use bevy::prelude::*;
-
 use iyes_loopless::prelude::*;
 
 mod assets;
@@ -24,6 +26,8 @@ fn main() {
     let window = WindowDescriptor {
         // mode: bevy::window::WindowMode::BorderlessFullscreen,
         title: String::from("mom4x"),
+        width: 1600.,
+        height: 1000.,
         ..Default::default()
     };
 

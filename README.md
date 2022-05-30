@@ -8,6 +8,7 @@
 - [ ] Move out camera transform from interact code
 - [ ] Make Selected a component again
 - [ ] Make animation type a component that changes, instead of a reaction ot selection
+- [ ] Borders and UI need to be connected to game world for deconstructing
 
 ## Project plan
 

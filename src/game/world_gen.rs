@@ -1,10 +1,11 @@
-use bevy::ecs::system::EntityCommands;
-use bevy::prelude::*;
+use bevy::{ecs::system::EntityCommands, prelude::*};
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::config;
-use crate::game::{actions, map, units};
+use crate::{
+    config,
+    game::{actions, map, units},
+};
 
 pub fn build_world(mut commands: Commands, config: Res<config::EngineConfig>) {
     commands
@@ -13,6 +14,7 @@ pub fn build_world(mut commands: Commands, config: Res<config::EngineConfig>) {
             width: 64,
             height: 32,
         })
+        .insert(super::GameTime { tick: 0, day: 0 })
         .insert_bundle(TransformBundle {
             local: Transform::identity(),
             global: GlobalTransform::identity(),

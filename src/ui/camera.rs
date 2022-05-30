@@ -3,9 +3,7 @@ use bevy_pixel_camera::{PixelBorderPlugin, PixelCameraBundle, PixelCameraPlugin,
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::config;
-use crate::game;
-use crate::ui;
+use crate::{config, game, ui};
 
 pub struct CameraPlugin {
     pub config: config::EngineConfig,
@@ -28,12 +26,16 @@ impl Plugin for CameraPlugin {
     }
 }
 
-fn setup(mut commands: Commands) {
-    commands.spawn_bundle(PixelCameraBundle::new(PixelProjection {
-        centered: true,
-        zoom: 5,
-        ..Default::default()
-    }));
+fn setup(mut commands: Commands, world_query: Query<Entity, With<game::map::GameWorld>>) {
+    commands
+        .entity(world_query.single())
+        .with_children(|builder| {
+            builder.spawn_bundle(PixelCameraBundle::new(PixelProjection {
+                centered: true,
+                zoom: 5,
+                ..Default::default()
+            }));
+        });
 }
 
 // A simple camera system for moving and zooming the camera.

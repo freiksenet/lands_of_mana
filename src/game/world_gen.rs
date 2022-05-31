@@ -1,16 +1,17 @@
 use bevy::{ecs::system::EntityCommands, prelude::*};
 use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
+use strum::IntoEnumIterator;
 
 use crate::{
     config,
-    game::{actions, map, units},
+    game::{actions, map, units, world},
 };
 
 pub fn build_world(mut commands: Commands, config: Res<config::EngineConfig>) {
     commands
         .spawn()
-        .insert(map::GameWorld {
+        .insert(world::GameWorld {
             width: 64,
             height: 32,
         })
@@ -24,6 +25,7 @@ pub fn build_world(mut commands: Commands, config: Res<config::EngineConfig>) {
             input_map: InputMap::default(),
         })
         .with_children(|world| {
+            build_player(world.spawn());
             for p_x in 0..4 {
                 for p_y in 0..2 {
                     build_province(world.spawn(), p_x, p_y, 4, 2);
@@ -32,6 +34,28 @@ pub fn build_world(mut commands: Commands, config: Res<config::EngineConfig>) {
         })
         .with_children(build_units);
     commands.insert_resource(NextState(config.after_load_world));
+}
+
+fn build_player(mut entity: EntityCommands) {
+    entity
+        .insert_bundle(world::PlayerBundle {
+            color: world::PlayerColor(Color::RED),
+            name: world::PlayerName("Merlin".to_string()),
+        })
+        .insert(world::Viewer {})
+        .with_children(|builder| {
+            builder.spawn_bundle(world::PlayerStockpileBundle {
+                amount: world::StockpileResourceAmount(100.),
+                resource: world::StockpileResourceType::Gold,
+            });
+            builder.spawn_bundle(world::PlayerStockpileBundle {
+                amount: world::StockpileResourceAmount(10.),
+                resource: world::StockpileResourceType::Wood,
+            });
+            for res_type in world::CapacityResourceType::iter() {
+                builder.spawn_bundle(world::PlayerCapacityBundle { resource: res_type });
+            }
+        });
 }
 
 fn build_province(mut entity: EntityCommands, p_x: u32, p_y: u32, p_xmax: u32, p_ymax: u32) {

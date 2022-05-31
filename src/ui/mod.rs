@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use bevy_pixel_camera::PixelProjection;
 use iyes_loopless::prelude::*;
-use kayak_ui::bevy::BevyKayakUIPlugin;
 use leafwing_input_manager::prelude::*;
 
 use crate::{config, game};
@@ -17,9 +16,7 @@ impl Plugin for InputPlugin {
         app.add_system(bevy::input::system::exit_on_esc_system)
             .add_system(bevy::window::exit_on_window_close_system)
             .add_plugin(InputManagerPlugin::<InputActions>::default())
-            .add_plugin(BevyKayakUIPlugin)
             .add_enter_system(self.config.run_game, setup)
-            .add_enter_system(self.config.run_game, gui::setup)
             .add_system_set(
                 ConditionSet::new()
                     .label("input")
@@ -31,18 +28,13 @@ impl Plugin for InputPlugin {
             .add_plugin(camera::CameraPlugin {
                 config: self.config,
             })
-            .add_system_set(
-                ConditionSet::new()
-                    .label("gui")
-                    .run_in_state(self.config.run_game)
-                    .with_system(gui::bind_game_time)
-                    .with_system(gui::bind_game_state)
-                    .into(),
-            );
+            .add_plugin(gui::GuiPlugin {
+                config: self.config,
+            });
     }
 }
 
-fn setup(mut commands: Commands, world_query: Query<Entity, With<game::map::GameWorld>>) {
+fn setup(mut commands: Commands, world_query: Query<Entity, With<game::world::GameWorld>>) {
     let world_entity = world_query.single();
     let mut input_map = InputMap::new([
         // pause / resume
@@ -89,7 +81,7 @@ fn input_to_game_actions(
 fn interact(
     windows: Res<Windows>,
     camera_transform_query: Query<(&Camera, &Transform), With<PixelProjection>>,
-    world_query: Query<&game::map::GameWorld>,
+    world_query: Query<&game::world::GameWorld>,
     input_action_query: Query<&ActionState<InputActions>>,
     mut selectable_query: Query<(&game::map::Position, &mut Selectable)>,
 ) {

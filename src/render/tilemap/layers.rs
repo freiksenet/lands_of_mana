@@ -28,7 +28,7 @@ pub enum TilemapLayer {
 impl TilemapLayer {
     pub fn new(
         child_builder: &mut ChildBuilder,
-        world: &game::map::GameWorld,
+        world: &game::world::GameWorld,
         layer_type: &TilemapLayerType,
         z: f32,
     ) -> TilemapLayer {
@@ -189,7 +189,7 @@ pub struct TilemapLayerManager {
 }
 
 impl TilemapLayerManager {
-    pub fn new(parent: &mut EntityCommands, world: &game::map::GameWorld) -> TilemapLayerManager {
+    pub fn new(parent: &mut EntityCommands, world: &game::world::GameWorld) -> TilemapLayerManager {
         let mut tilemap_layers = Vec::new();
         parent.with_children(|builder| {
             tilemap_layers.extend(vec![

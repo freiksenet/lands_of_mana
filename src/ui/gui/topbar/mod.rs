@@ -18,6 +18,7 @@ use crate::{
     game::{self},
 };
 
+mod resources;
 mod toolbar;
 
 #[widget]
@@ -61,14 +62,19 @@ pub fn TopBar() {
         ..Style::default()
     };
 
+    let title_container_style = Style {
+        width: StyleProp::Value(Units::Auto),
+        ..Style::default()
+    };
+
     let title_style = Style {
+        layout_type: StyleProp::Value(LayoutType::Row),
         color: StyleProp::Value(Color::new(0., 0., 0., 1.)),
-        width: StyleProp::Value(Units::Stretch(1.)),
+
         ..Style::default()
     };
 
     let tick_counter_container_style = Style {
-        width: StyleProp::Value(Units::Stretch(1.)),
         padding_left: StyleProp::Value(Units::Stretch(1.)),
         ..Style::default()
     };
@@ -83,14 +89,17 @@ pub fn TopBar() {
         <NinePatch styles={Some(container_style)}
           handle={top_bar_image_handle}
           border={Edge::all(16.0)}>
-          <Text size={24.0}
-            line_height={Some(32.)}
-            content={"Mom4X TopBar".to_string()}
-            styles={Some(title_style)} />
+          <Element styles={Some(title_container_style)}>
+            <Text size={24.0}
+                line_height={Some(32.)}
+                content={"Mom4X\u{00A0}TopBar".to_string()}
+                styles={Some(title_style)} />
+          </Element>
+          <resources::Resources />
           <Element styles={Some(tick_counter_container_style)}>
             <Text size={24.0}
               line_height={Some(32.)}
-              content={format!("Day {:04} | Tick {:02}", game_time.day + 1, game_time.tick + 1)}
+              content={format!("Day\u{00A0}{:04}\u{00A0}|\u{00A0}Tick\u{00A0}{:02}", game_time.day + 1, game_time.tick + 1)}
               styles={Some(tick_counter_style)} />
           </Element>
           <toolbar::Toolbar

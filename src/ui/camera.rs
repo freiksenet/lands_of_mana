@@ -42,7 +42,7 @@ pub fn camera_position_to_pixel_position(
     }
 }
 
-fn setup(mut commands: Commands, world_query: Query<Entity, With<game::map::GameWorld>>) {
+fn setup(mut commands: Commands, world_query: Query<Entity, With<game::world::GameWorld>>) {
     commands
         .entity(world_query.single())
         .with_children(|builder| {
@@ -57,7 +57,7 @@ fn setup(mut commands: Commands, world_query: Query<Entity, With<game::map::Game
 // A simple camera system for moving and zooming the camera.
 fn camera_control(
     input_action_query: Query<&ActionState<ui::InputActions>>,
-    world_query: Query<&game::map::GameWorld>,
+    world_query: Query<&game::world::GameWorld>,
     mut query: Query<(&mut Transform, &mut PixelProjection), With<Camera>>,
 ) {
     let game_world = world_query.single();

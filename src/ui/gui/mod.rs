@@ -2,37 +2,134 @@ use bevy::prelude::*;
 use iyes_loopless::prelude::*;
 use kayak_core::{bind, Binding, MutableBound};
 use kayak_ui::{
-    bevy::{BevyContext, FontMapping, UICameraBundle},
+    bevy::{BevyContext, BevyKayakUIPlugin, FontMapping, UICameraBundle},
     core::{render, Index},
-    widgets::App,
 };
 
-use crate::{assets, game};
+use crate::{assets, config, game};
 
 mod topbar;
 
-pub fn setup(
+pub struct GuiPlugin {
+    pub config: config::EngineConfig,
+}
+
+impl Plugin for GuiPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugin(BevyKayakUIPlugin)
+            .add_enter_system(
+                self.config.run_game,
+                setup_binding_resources.exclusive_system(),
+            )
+            .add_enter_system(self.config.run_game, setup_ui)
+            .add_system_set(
+                ConditionSet::new()
+                    .label("gui")
+                    .after("input")
+                    .run_in_state(self.config.run_game)
+                    .with_system(bind_game_time)
+                    .with_system(bind_game_state)
+                    .with_system(bind_current_player_resources)
+                    .into(),
+            );
+    }
+}
+
+pub fn setup_ui(
     mut commands: Commands,
     mut font_mapping: ResMut<FontMapping>,
     font_assets: Res<assets::FontAssets>,
+) {
+    commands.spawn_bundle(UICameraBundle::new());
+    font_mapping.set_default(font_assets.compass.clone());
+
+    let context = BevyContext::new(|context| {
+        render! {
+            <kayak_ui::widgets::App>
+              <topbar::TopBar />
+            </kayak_ui::widgets::App>
+        }
+    });
+
+    commands.insert_resource(context);
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
+
+pub struct PlayerStockpileResource {
+    pub resource_type: game::world::StockpileResourceType,
+    pub amount: f32,
+    pub income: f32,
+    // Tooltip stuff here maybe? could be separate tyfpe
+}
+
+impl Eq for PlayerStockpileResource {}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+
+pub struct PlayerCapacityResource {
+    pub resource_type: game::world::CapacityResourceType,
+    pub free: u32,
+    pub total: u32,
+    // Tooltip stuff here maybe? could be separate type
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
+
+pub struct PlayerResources {
+    pub stockpile_resources: Vec<PlayerStockpileResource>,
+    pub capacity_resources: Vec<PlayerCapacityResource>,
+}
+
+pub fn setup_binding_resources(
+    mut commands: Commands,
     game_time_query: Query<&game::GameTime>,
     game_state: Res<CurrentState<game::InGameState>>,
 ) {
     let game_time = game_time_query.single();
     commands.insert_resource(bind(*game_time));
     commands.insert_resource(bind(game_state.0));
-    commands.spawn_bundle(UICameraBundle::new());
-    font_mapping.set_default(font_assets.compass.clone());
-
-    let context = BevyContext::new(|context| {
-        render! {
-            <App>
-              <topbar::TopBar />
-            </App>
-        }
-    });
-
-    commands.insert_resource(context);
+    commands.insert_resource(bind(PlayerResources {
+        stockpile_resources: vec![
+            PlayerStockpileResource {
+                resource_type: game::world::StockpileResourceType::Gold,
+                amount: 0.0,
+                income: 0.0,
+            },
+            PlayerStockpileResource {
+                resource_type: game::world::StockpileResourceType::Wood,
+                amount: 0.0,
+                income: 0.0,
+            },
+        ],
+        capacity_resources: vec![
+            PlayerCapacityResource {
+                resource_type: game::world::CapacityResourceType::Sun,
+                free: 0,
+                total: 0,
+            },
+            PlayerCapacityResource {
+                resource_type: game::world::CapacityResourceType::Arcana,
+                free: 0,
+                total: 0,
+            },
+            PlayerCapacityResource {
+                resource_type: game::world::CapacityResourceType::Death,
+                free: 0,
+                total: 0,
+            },
+            PlayerCapacityResource {
+                resource_type: game::world::CapacityResourceType::Chaos,
+                free: 0,
+                total: 0,
+            },
+            PlayerCapacityResource {
+                resource_type: game::world::CapacityResourceType::Nature,
+                free: 0,
+                total: 0,
+            },
+        ],
+    }))
 }
 
 pub fn bind_game_time(
@@ -54,119 +151,38 @@ pub fn bind_game_state(
     }
 }
 
-// commands
-//     .spawn()
-//     .insert(TopBar)
-//     .insert_bundle(NodeBundle {
-//         style: Style {
-//             size: Size::new(Val::Px(2048.), Val::Px(32.)),
-//             padding: Rect {
-//                 left: Val::Px(12.),
-//                 right: Val::Px(12.),
-//                 ..default()
-//             },
-//             justify_content: JustifyContent::FlexStart,
-//             align_items: AlignItems::Center,
-//             align_self: AlignSelf::FlexEnd,
-//             ..default()
-//         },
-//         image: UiImage(ui_assets.top_bar.clone()),
-//         focus_policy: bevy::ui::FocusPolicy::Block,
-//         ..default()
-//     })
-//     .with_children(|parent| {
-//         // Title
-//         parent.spawn_bundle(TextBundle {
-//             text: Text::with_section(
-//                 "mom4x Galore Top Bar",
-//                 TextStyle {
-//                     font: font_assets.compass.clone(),
-//                     font_size: 16.,
-//                     color: Color::BLACK,
-//                 },
-//                 Default::default(),
-//             ),
-//             ..default()
-//         });
-
-//         parent.spawn_bundle(NodeBundle {
-//             color: Color::NONE.into(),
-//             style: Style {
-//                 flex_grow: 1.,
-//                 ..default()
-//             },
-//             ..default()
-//         });
-
-//         parent
-//             .spawn_bundle(NodeBundle {
-//                 color: Color::NONE.into(),
-//                 style: Style {
-//                     size: Size::new(Val::Auto, Val::Px(32.)),
-//                     align_self: AlignSelf::FlexEnd,
-//                     justify_content: JustifyContent::SpaceAround,
-//                     align_items: AlignItems::Center,
-//                     ..default()
-//                 },
-//                 ..default()
-//             })
-//             .with_children(|parent| {
-//                 parent
-//                     .spawn()
-//                     .insert(PauseButton)
-//                     .insert_bundle(ButtonBundle {
-//                         style: Style {
-//                             size: Size::new(Val::Px(16.), Val::Px(16.)),
-//                             justify_content: JustifyContent::Center,
-//                             align_items: AlignItems::Center,
-//                             margin: Rect {
-//                                 bottom: Val::Px(1.),
-//                                 ..default()
-//                             },
-//                             ..default()
-//                         },
-//                         image: UiImage(ui_assets.pause.clone()),
-//                         ..default()
-//                     });
-//                 parent
-//                     .spawn()
-//                     .insert(ResumeButton)
-//                     .insert_bundle(ButtonBundle {
-//                         style: Style {
-//                             size: Size::new(Val::Px(16.), Val::Px(16.)),
-//                             justify_content: JustifyContent::Center,
-//                             align_items: AlignItems::Center,
-//                             margin: Rect {
-//                                 left: Val::Px(6.),
-//                                 bottom: Val::Px(1.),
-//                                 ..default()
-//                             },
-//                             ..default()
-//                         },
-//                         image: UiImage(ui_assets.resume.clone()),
-//                         ..default()
-//                     });
-//                 parent
-//                     .spawn()
-//                     .insert(GameTickDisplay)
-//                     .insert_bundle(TextBundle {
-//                         text: Text::with_section(
-//                             std::format!("Day {:}, {:} / 10", game_time.day, game_time.tick),
-//                             TextStyle {
-//                                 font: font_assets.compass.clone(),
-//                                 font_size: 16.,
-//                                 color: Color::BLACK,
-//                             },
-//                             Default::default(),
-//                         ),
-//                         style: Style {
-//                             margin: Rect {
-//                                 left: Val::Px(6.),
-//                                 ..default()
-//                             },
-//                             ..default()
-//                         },
-//                         ..default()
-//                     });
-//             });
-//     });
+pub fn bind_current_player_resources(
+    player_resources_binding: ResMut<Binding<PlayerResources>>,
+    player_query: Query<&Children, With<game::world::Viewer>>,
+    stockpile_resources_query: Query<(
+        &game::world::StockpileResourceType,
+        &game::world::StockpileResourceAmount,
+    )>,
+    capacity_resources_query: Query<&game::world::CapacityResourceType>,
+) {
+    let player_children = player_query.single();
+    let mut capacity_resources = Vec::new();
+    let mut stockpile_resources = Vec::new();
+    for child_entity in player_children.iter() {
+        if let Ok((resource_type, game::world::StockpileResourceAmount(amount))) =
+            stockpile_resources_query.get(*child_entity)
+        {
+            stockpile_resources.push(PlayerStockpileResource {
+                resource_type: *resource_type,
+                amount: *amount,
+                income: 0.0,
+            });
+        }
+        if let Ok(resource_type) = capacity_resources_query.get(*child_entity) {
+            capacity_resources.push(PlayerCapacityResource {
+                resource_type: *resource_type,
+                free: 0,
+                total: 0,
+            });
+        }
+    }
+    player_resources_binding.set(PlayerResources {
+        stockpile_resources,
+        capacity_resources,
+    })
+}

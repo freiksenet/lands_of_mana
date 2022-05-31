@@ -8,6 +8,8 @@
 - [ ] Make animation type a component that changes, instead of a reaction ot selection
 - [ ] Borders and UI need to be connected to game world for deconstructing
 - [ ] Make GUI a plugin, unite all bindings in a system
+- [ ] Refactor structs that are single value to just be single value
+- [ ] Default values for some sentinels, group into bundlesn better
 
 ## Project plan
 

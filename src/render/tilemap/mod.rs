@@ -15,7 +15,7 @@ use crate::{assets, game};
 pub fn setup(
     mut commands: Commands,
     tiles: ResMut<assets::TileAssets>,
-    world_query: Query<(Entity, &game::map::GameWorld)>,
+    world_query: Query<(Entity, &game::world::GameWorld)>,
     terrain_query: Query<(
         Entity,
         &game::map::Position,

@@ -16,9 +16,12 @@ use crate::game;
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq, Eq)]
 pub struct ToolbarProps {
+    #[prop_field]
     pub pause_button: (u16, u16, u16, u16),
+    #[prop_field]
     pub resume_button: (u16, u16, u16, u16),
 
+    #[prop_field]
     pub game_state: game::InGameState,
 }
 

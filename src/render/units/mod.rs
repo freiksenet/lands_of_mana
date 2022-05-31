@@ -87,7 +87,7 @@ pub fn setup(
     mut commands: Commands,
     creatures: Res<CreatureAssets>,
     mut animations: ResMut<Assets<SpriteSheetAnimation>>,
-    world_query: Query<&game::map::GameWorld>,
+    world_query: Query<&game::world::GameWorld>,
     unit_query: Query<(Entity, &game::map::Position, &game::units::Unit)>,
     figure_query: Query<(Entity, &Parent), With<game::units::UnitFigure>>,
 ) {

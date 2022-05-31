@@ -9,6 +9,7 @@ use crate::config;
 pub mod actions;
 pub mod map;
 pub mod units;
+pub mod world;
 pub mod world_gen;
 
 pub struct GamePlugin {

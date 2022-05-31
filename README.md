@@ -4,11 +4,10 @@
 
 - [ ] Render should add transforms to world etc
 - [ ] Camera should be child of world or player
-- [ ] Layer code doesn't need layer ids in lookups
-- [ ] Move out camera transform from interact code
 - [ ] Make Selected a component again
 - [ ] Make animation type a component that changes, instead of a reaction ot selection
 - [ ] Borders and UI need to be connected to game world for deconstructing
+- [ ] Make GUI a plugin, unite all bindings in a system
 
 ## Project plan
 
@@ -17,8 +16,8 @@
   - [x] unit rendering
   - [x] ui interactions
 - [ ] Phase 2 - basic game play prototype - building blocks to develop gameplay
-  - [ ] game tick and days
-    - [ ] ui showing tick and days
+  - [x] game tick and days
+    - [x] ui showing tick and days
   - [ ] resources
   - [ ] ui top bar
   - [ ] concept of entities using and giving resources

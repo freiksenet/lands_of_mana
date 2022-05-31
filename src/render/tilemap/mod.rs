@@ -78,7 +78,7 @@ pub fn setup(
             for tile_bundle in build_city_tiles(position, city) {
                 tilemap_layer_manager.insert_tile_bundle(
                     builder,
-                    (&layers::TilemapLayerType::Sites, 7.),
+                    &layers::TilemapLayerType::Sites,
                     &tile_bundle.position,
                     tile_bundle,
                 )
@@ -132,7 +132,7 @@ fn build_background(
             let left_pos = TilePos2d { x, y };
             tilemap_layer_manager.insert_tile_bundle(
                 builder,
-                (&layers::TilemapLayerType::Background, 50.),
+                &layers::TilemapLayerType::Background,
                 &left_pos,
                 TileBundle {
                     position: left_pos,
@@ -146,7 +146,7 @@ fn build_background(
             };
             tilemap_layer_manager.insert_tile_bundle(
                 builder,
-                (&layers::TilemapLayerType::Background, 50.),
+                &layers::TilemapLayerType::Background,
                 &right_pos,
                 TileBundle {
                     position: right_pos,
@@ -162,7 +162,7 @@ fn build_background(
             let top_pos = TilePos2d { x, y };
             tilemap_layer_manager.insert_tile_bundle(
                 builder,
-                (&layers::TilemapLayerType::Background, 50.),
+                &layers::TilemapLayerType::Background,
                 &top_pos,
                 TileBundle {
                     position: top_pos,
@@ -176,7 +176,7 @@ fn build_background(
             };
             tilemap_layer_manager.insert_tile_bundle(
                 builder,
-                (&layers::TilemapLayerType::Background, 50.),
+                &layers::TilemapLayerType::Background,
                 &bottom_pos,
                 TileBundle {
                     position: bottom_pos,
@@ -193,7 +193,7 @@ fn build_background(
     };
     tilemap_layer_manager.insert_tile_bundle(
         builder,
-        (&layers::TilemapLayerType::Background, 50.),
+        &layers::TilemapLayerType::Background,
         &left_top,
         TileBundle {
             position: left_top,
@@ -207,7 +207,7 @@ fn build_background(
     };
     tilemap_layer_manager.insert_tile_bundle(
         builder,
-        (&layers::TilemapLayerType::Background, 50.),
+        &layers::TilemapLayerType::Background,
         &right_top,
         TileBundle {
             position: right_top,
@@ -218,7 +218,7 @@ fn build_background(
     let left_bottom = TilePos2d { x: 6, y: 6 };
     tilemap_layer_manager.insert_tile_bundle(
         builder,
-        (&layers::TilemapLayerType::Background, 50.),
+        &layers::TilemapLayerType::Background,
         &left_bottom,
         TileBundle {
             position: left_bottom,
@@ -232,7 +232,7 @@ fn build_background(
     };
     tilemap_layer_manager.insert_tile_bundle(
         builder,
-        (&layers::TilemapLayerType::Background, 50.),
+        &layers::TilemapLayerType::Background,
         &right_bottom,
         TileBundle {
             position: right_bottom,
@@ -245,7 +245,7 @@ fn build_background(
         let bottom_tile = TilePos2d { x, y: 6 };
         tilemap_layer_manager.insert_tile_bundle(
             builder,
-            (&layers::TilemapLayerType::Background, 50.),
+            &layers::TilemapLayerType::Background,
             &bottom_tile,
             TileBundle {
                 position: bottom_tile,
@@ -256,7 +256,7 @@ fn build_background(
         let top_tile = TilePos2d { x, y: size.y + 5 };
         tilemap_layer_manager.insert_tile_bundle(
             builder,
-            (&layers::TilemapLayerType::Background, 50.),
+            &layers::TilemapLayerType::Background,
             &top_tile,
             TileBundle {
                 position: top_tile,
@@ -270,7 +270,7 @@ fn build_background(
         let left_tile = TilePos2d { x: 6, y };
         tilemap_layer_manager.insert_tile_bundle(
             builder,
-            (&layers::TilemapLayerType::Background, 50.),
+            &layers::TilemapLayerType::Background,
             &left_tile,
             TileBundle {
                 position: left_tile,
@@ -281,7 +281,7 @@ fn build_background(
         let right_tile = TilePos2d { x: size.x + 5, y };
         tilemap_layer_manager.insert_tile_bundle(
             builder,
-            (&layers::TilemapLayerType::Background, 50.),
+            &layers::TilemapLayerType::Background,
             &right_tile,
             TileBundle {
                 position: right_tile,

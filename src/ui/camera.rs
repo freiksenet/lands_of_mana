@@ -26,6 +26,22 @@ impl Plugin for CameraPlugin {
     }
 }
 
+pub fn camera_position_to_pixel_position(
+    window: &Window,
+    camera: &Camera,
+    camera_transform: &Transform,
+) -> Option<Vec2> {
+    if let Some(window_cursor_position) = window.cursor_position() {
+        let window_size = Vec2::new(window.width() as f32, window.height() as f32);
+        let ndc = (window_cursor_position / window_size) * 2.0 - Vec2::ONE;
+        let ndc_to_world = camera_transform.compute_matrix() * camera.projection_matrix.inverse();
+        // use it to convert ndc to world-space coordinates
+        Some(ndc_to_world.project_point3(ndc.extend(-1.0)).truncate())
+    } else {
+        None
+    }
+}
+
 fn setup(mut commands: Commands, world_query: Query<Entity, With<game::map::GameWorld>>) {
     commands
         .entity(world_query.single())

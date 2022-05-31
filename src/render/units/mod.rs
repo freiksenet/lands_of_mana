@@ -104,7 +104,8 @@ pub fn setup(
         let unit_entity = Entity::from_raw(unit_entity_id);
         let (_, position, unit) = unit_query.get(unit_entity).unwrap();
 
-        let base_position = world.position_to_pixel_position(position) + Vec3::new(0., 0., 75.);
+        let base_position =
+            world.position_to_pixel_position(position).extend(0.) + Vec3::new(0., 0., 75.);
         commands.entity(unit_entity).insert_bundle(TransformBundle {
             local: Transform::from_translation(base_position),
             global: GlobalTransform::identity(),

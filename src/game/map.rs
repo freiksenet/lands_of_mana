@@ -9,26 +9,24 @@ pub struct GameWorld {
 
 impl GameWorld {
     /// Get world midpoint in pixels
-    pub fn get_pixel_midpoint(&self) -> Vec3 {
-        Vec3::new(
+    pub fn get_pixel_midpoint(&self) -> Vec2 {
+        Vec2::new(
             (self.width * 16) as f32 / 2. - 8.,
             (self.height * 16) as f32 / 2. - 8.,
-            0.,
         )
     }
 
-    pub fn pixel_position_to_position(&self, pixel_position: Vec3) -> Position {
+    pub fn pixel_position_to_position(&self, pixel_position: Vec2) -> Position {
         let corner_position = pixel_position + self.get_pixel_midpoint();
         Position {
-            x: (corner_position.x / 16.0).floor() as u32,
-            y: (corner_position.y / 16.0).floor() as u32,
+            x: ((corner_position.x + 8.) / 16.0).floor() as u32,
+            y: ((corner_position.y + 8.) / 16.0).floor() as u32,
         }
     }
 
     /// for position, get pixel position of (0,0) of a tile
-    pub fn position_to_pixel_position(&self, position: &Position) -> Vec3 {
-        Vec3::new((position.x * 16) as f32, (position.y * 16) as f32, 0.)
-            - self.get_pixel_midpoint()
+    pub fn position_to_pixel_position(&self, position: &Position) -> Vec2 {
+        Vec2::new((position.x * 16) as f32, (position.y * 16) as f32) - self.get_pixel_midpoint()
     }
 }
 

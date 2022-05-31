@@ -98,16 +98,12 @@ fn interact(
     if input_action_state.just_pressed(InputActions::Interact) {
         let window = windows.get_primary().unwrap();
 
-        if let Some(window_cursor_position) = window.cursor_position() {
-            let (camera, camera_transform) = camera_transform_query.single();
-            let window_size = Vec2::new(window.width() as f32, window.height() as f32);
-            let ndc = (window_cursor_position / window_size) * 2.0 - Vec2::ONE;
-            let ndc_to_world =
-                camera_transform.compute_matrix() * camera.projection_matrix.inverse();
-            // use it to convert ndc to world-space coordinates
-            let world_pos = ndc_to_world.project_point3(ndc.extend(-1.0));
+        let (camera, camera_transform) = camera_transform_query.single();
+        if let Some(pixel_position) =
+            camera::camera_position_to_pixel_position(window, camera, camera_transform)
+        {
             let world = world_query.single();
-            let cursor_position = world.pixel_position_to_position(world_pos);
+            let cursor_position = world.pixel_position_to_position(pixel_position);
 
             for (position, mut selectable) in selectable_query.iter_mut() {
                 if &cursor_position == position {

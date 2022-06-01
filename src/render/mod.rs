@@ -1,19 +1,15 @@
 use benimator::AnimationPlugin;
-use bevy::{
-    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    prelude::*,
-};
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy_ecs_tilemap::Tilemap2dPlugin;
 use bevy_framepace::{FramepacePlugin, FramerateLimit};
 use iyes_loopless::prelude::*;
 
-use crate::config;
+use crate::prelude::*;
 
 pub mod tilemap;
 pub mod units;
-pub struct RenderPlugin {
-    pub config: config::EngineConfig,
-}
+
+pub struct RenderPlugin {}
 
 impl Plugin for RenderPlugin {
     fn build(&self, app: &mut App) {
@@ -21,18 +17,19 @@ impl Plugin for RenderPlugin {
             framerate_limit: FramerateLimit::Manual(30),
             ..Default::default()
         })
+        .add_stage(config::Stage::UiSync, SystemStage::parallel())
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(Tilemap2dPlugin)
         .add_plugin(AnimationPlugin::default())
-        .add_enter_system(self.config.load_graphics, tilemap::setup)
-        .add_enter_system(self.config.load_graphics, units::setup)
-        .add_system(proceed_to_ready_state.run_in_state(self.config.load_graphics))
-        .add_system_set(
+        .add_enter_system(config::EngineState::LoadingGraphics, tilemap::setup)
+        .add_enter_system(config::EngineState::LoadingGraphics, units::setup)
+        .add_system(proceed_to_ready_state.run_in_state(config::EngineState::LoadingGraphics))
+        .add_system_set_to_stage(
+            config::Stage::UiSync,
             ConditionSet::new()
-                .label("render")
-                .after("input")
-                .run_in_state(self.config.run_game)
+                .label_and_after(config::UiSyncLabel::Bindings)
+                .run_in_state(config::EngineState::InGame)
                 .with_system(units::animations)
                 .with_system(units::selected)
                 .into(),
@@ -40,6 +37,6 @@ impl Plugin for RenderPlugin {
     }
 }
 
-fn proceed_to_ready_state(mut commands: Commands, config: Res<config::EngineConfig>) {
-    commands.insert_resource(NextState(config.after_load_graphics));
+fn proceed_to_ready_state(mut commands: Commands) {
+    commands.insert_resource(NextState(config::EngineState::LoadingGraphics.next()));
 }

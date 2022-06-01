@@ -1,7 +1,6 @@
-use bevy::prelude::{Res, *};
 use kayak_core::{
     styles::{Edge, LayoutType},
-    Binding, Bound, Color, WidgetProps,
+    Binding, Bound, Color,
 };
 use kayak_render_macros::WidgetProps;
 use kayak_ui::{
@@ -13,7 +12,7 @@ use kayak_ui::{
     widgets::{Element, Text},
 };
 
-use crate::ui::gui;
+use crate::prelude::*;
 
 #[widget]
 pub fn Resources() {
@@ -28,24 +27,24 @@ pub fn Resources() {
         ..Style::default()
     };
 
-    let resources_binding =
-        context.query_world::<Res<Binding<gui::PlayerResources>>, _, _>(move |player_resources| {
-            player_resources.clone()
-        });
+    let resources_binding = context
+        .query_world::<Res<Binding<ui::gui::bindings::PlayerResources>>, _, _>(
+            move |player_resources| player_resources.clone(),
+        );
     context.bind(&resources_binding);
     let resources = resources_binding.get();
     println!("{:?}", resources);
 
     rsx! {
       <Element styles={Some(style)}>
-        {VecTracker::from(resources.stockpile_resources.iter().map(|resource| {
+        {VecTracker::from(resources.stockpile_resources.iter().map(|(resource_type, resource)| {
           constructor! {
-              <StockpileResource resource={*resource} />
+              <StockpileResource resource_type={*resource_type} resource={*resource} />
           }
         }))}
-        {VecTracker::from(resources.capacity_resources.iter().map(|resource| {
+        {VecTracker::from(resources.capacity_resources.iter().map(|(resource_type, resource)| {
           constructor! {
-              <CapacityResource resource={*resource} />
+              <CapacityResource resource_type={*resource_type} resource={*resource} />
           }
         }))}
       </Element>
@@ -55,7 +54,9 @@ pub fn Resources() {
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq, Eq)]
 pub struct StockpileResourceProps {
     #[prop_field]
-    resource: gui::PlayerStockpileResource,
+    resource_type: game::world::StockpileResourceType,
+    #[prop_field]
+    resource: ui::gui::bindings::PlayerStockpileResource,
 }
 
 #[widget]
@@ -76,7 +77,7 @@ pub fn StockpileResource(props: StockpileResourceProps) {
     rsx! {
       <Element styles={Some(style)}>
         <Text
-          content={format!("{:?}:\u{00A0}{:}", props.resource.resource_type, props.resource.amount)}
+          content={format!("{:?}:\u{00A0}{:}", props.resource_type, props.resource.amount)}
           size={24.}
           line_height={Some(32.)}
           styles={Some(text_style)}
@@ -88,7 +89,9 @@ pub fn StockpileResource(props: StockpileResourceProps) {
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq, Eq)]
 pub struct CapacityResourceProps {
     #[prop_field]
-    resource: gui::PlayerCapacityResource,
+    resource_type: game::world::CapacityResourceType,
+    #[prop_field]
+    resource: ui::gui::bindings::PlayerCapacityResource,
 }
 
 #[widget]
@@ -108,7 +111,7 @@ pub fn CapacityResource(props: CapacityResourceProps) {
     rsx! {
       <Element styles={Some(style)}>
         <Text
-          content={format!("{:?}:\u{00A0}{:}/{:}", props.resource.resource_type, props.resource.free, props.resource.total)}
+          content={format!("{:?}:\u{00A0}{:}/{:}", props.resource_type, props.resource.free, props.resource.total)}
           size={24.}
           line_height={Some(32.)}
           styles={Some(text_style)}

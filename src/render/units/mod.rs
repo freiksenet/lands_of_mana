@@ -1,11 +1,9 @@
 use std::{collections::HashMap, iter::zip, time::Duration};
 
 use benimator::*;
-use bevy::prelude::*;
-use iyes_loopless::prelude::*;
 use strum_macros::{EnumIter, EnumString};
 
-use crate::{assets::CreatureAssets, game, ui};
+use crate::prelude::*;
 
 pub trait UnitSprite {
     fn get_default_tile_index(&self) -> usize;
@@ -16,7 +14,6 @@ pub trait UnitSprite {
 impl UnitSprite for game::units::Unit {
     fn get_default_tile_index(&self) -> usize {
         match self.unit_type {
-            game::units::UnitType::DebugBox => 0,
             game::units::UnitType::Skeleton => 216,
             game::units::UnitType::DeathKnight => 360,
             game::units::UnitType::GiantSpider => 264,
@@ -38,7 +35,6 @@ impl UnitSprite for game::units::Unit {
             _ => 1,
         };
         let scale_amount = match self.unit_type {
-            game::units::UnitType::DebugBox => 1.,
             game::units::UnitType::GiantSpider => 1.,
             _ => 0.75,
         };
@@ -53,7 +49,6 @@ impl UnitSprite for game::units::Unit {
                 Vec3::new(0., 0., 0.1),
             ],
 
-            (game::units::UnitType::DebugBox, _) => vec![Vec3::new(0., 0., 0.)],
             (_, _) => vec![Vec3::new(0., 0., 0.)],
         };
 
@@ -85,7 +80,7 @@ pub enum AnimationType {
 
 pub fn setup(
     mut commands: Commands,
-    creatures: Res<CreatureAssets>,
+    creatures: Res<assets::CreatureAssets>,
     mut animations: ResMut<Assets<SpriteSheetAnimation>>,
     world_query: Query<&game::world::GameWorld>,
     unit_query: Query<(Entity, &game::map::Position, &game::units::Unit)>,

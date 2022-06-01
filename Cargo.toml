@@ -40,6 +40,7 @@ num-traits = "0.2"
 num-derive = "0.3"
 bevy_pixel_camera = { git = "https://github.com/drakmaniso/bevy_pixel_camera", branch = "main" }
 bevy_framepace = "0.4.0"
+assoc = "0.1.1"
 
 [dependencies.bevy]
 version = "0.7"

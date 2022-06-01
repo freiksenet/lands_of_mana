@@ -161,6 +161,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "assoc"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37200bb9adb6850bb06aa3970a77e9697a446ed37517cfd0a8207b2de8cd53a8"
+
+[[package]]
 name = "async-channel"
 version = "1.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3165,6 +3171,7 @@ dependencies = [
 name = "mom4x"
 version = "0.1.0"
 dependencies = [
+ "assoc",
  "benimator",
  "bevy",
  "bevy-inspector-egui",

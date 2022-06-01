@@ -12,7 +12,7 @@ use kayak_ui::{
     widgets::{Element, Image},
 };
 
-use crate::game;
+use crate::prelude::*;
 
 #[derive(WidgetProps, Clone, Debug, Default, PartialEq, Eq)]
 pub struct ToolbarProps {

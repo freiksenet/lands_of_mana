@@ -1,5 +1,7 @@
-use bevy::prelude::*;
 use strum_macros::{EnumIter, EnumString};
+
+use crate::prelude::*;
+
 #[derive(Component, Debug, Clone)]
 pub struct Province {
     pub name: String,

@@ -13,10 +13,7 @@ use kayak_ui::{
     widgets::{Element, NinePatch, Text},
 };
 
-use crate::{
-    assets,
-    game::{self},
-};
+use crate::prelude::*;
 
 mod resources;
 mod toolbar;

@@ -2,27 +2,18 @@
 #![allow(clippy::derive_partial_eq_without_eq)]
 #![allow(clippy::type_complexity)]
 #![feature(allocator_api)]
+#![feature(trait_alias)]
 
-use bevy::prelude::*;
-use iyes_loopless::prelude::*;
+pub mod assets;
+pub mod config;
+pub mod game;
+pub mod prelude;
+pub mod render;
+pub mod ui;
 
-mod assets;
-mod config;
-mod game;
-mod render;
-mod ui;
+use crate::prelude::*;
 
 fn main() {
-    let config = config::EngineConfig {
-        load_assets: config::EngineState::LoadingAssets,
-        after_load_assets: config::EngineState::LoadingWorld,
-        load_world: config::EngineState::LoadingWorld,
-        after_load_world: config::EngineState::LoadingGraphics,
-        load_graphics: config::EngineState::LoadingGraphics,
-        after_load_graphics: config::EngineState::InGame,
-        run_game: config::EngineState::InGame,
-    };
-
     let window = WindowDescriptor {
         // mode: bevy::window::WindowMode::BorderlessFullscreen,
         title: String::from("mom4x"),
@@ -35,14 +26,13 @@ fn main() {
 
     app.insert_resource(window)
         .insert_resource(Msaa { samples: 1 })
-        .insert_resource(config)
         .add_loopless_state(config::EngineState::LoadingAssets);
 
     app.add_plugins(DefaultPlugins)
         .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
-        .add_plugin(assets::AssetLoadingPlugin { config })
-        .add_plugin(game::GamePlugin { config })
-        .add_plugin(render::RenderPlugin { config })
-        .add_plugin(ui::InputPlugin { config })
+        .add_plugin(assets::AssetLoadingPlugin {})
+        .add_plugin(game::GamePlugin {})
+        .add_plugin(render::RenderPlugin {})
+        .add_plugin(ui::InputPlugin {})
         .run();
 }

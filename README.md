@@ -20,9 +20,9 @@
 - [ ] Phase 2 - basic game play prototype - building blocks to develop gameplay
   - [x] game tick and days
     - [x] ui showing tick and days
-  - [ ] resources
-  - [ ] ui top bar
-  - [ ] concept of entities using and giving resources
+  - [x] resources
+  - [x] ui top bar
+  - [x] concept of entities using and giving resources
   - [ ] selection ui
     - [ ] screen for selected entity
     - [ ] city

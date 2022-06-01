@@ -1,13 +1,9 @@
-use bevy::prelude::*;
 use bevy_pixel_camera::{PixelBorderPlugin, PixelCameraBundle, PixelCameraPlugin, PixelProjection};
-use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::{config, game, ui};
+use crate::prelude::*;
 
-pub struct CameraPlugin {
-    pub config: config::EngineConfig,
-}
+pub struct CameraPlugin {}
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
@@ -15,11 +11,11 @@ impl Plugin for CameraPlugin {
             .add_plugin(PixelBorderPlugin {
                 color: Color::rgb(0.1, 0.1, 0.1),
             })
-            .add_enter_system(self.config.run_game, setup)
+            .add_enter_system(config::EngineState::InGame, setup)
             .add_system_set(
                 ConditionSet::new()
-                    .label("input")
-                    .run_in_state(self.config.run_game)
+                    .label(config::UpdateStageLabel::Input)
+                    .run_in_state(config::EngineState::InGame)
                     .with_system(camera_control)
                     .into(),
             );

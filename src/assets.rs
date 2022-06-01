@@ -1,16 +1,13 @@
-use bevy::prelude::*;
 use bevy_asset_loader::{AssetCollection, AssetLoader};
 use kayak_ui::font::KayakFont;
 
-use crate::config;
-pub struct AssetLoadingPlugin {
-    pub config: config::EngineConfig,
-}
+use crate::prelude::*;
+pub struct AssetLoadingPlugin {}
 
 impl Plugin for AssetLoadingPlugin {
     fn build(&self, app: &mut App) {
-        AssetLoader::new(self.config.load_assets)
-            .continue_to_state(self.config.after_load_assets)
+        AssetLoader::new(config::EngineState::LoadingAssets)
+            .continue_to_state(config::EngineState::LoadingAssets.next())
             .with_collection::<TileAssets>()
             .with_collection::<CreatureAssets>()
             .with_collection::<UiAssets>()

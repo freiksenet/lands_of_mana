@@ -1,10 +1,6 @@
 use std::time::Duration;
 
-use bevy::prelude::*;
-use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
-
-use crate::config;
 
 pub mod actions;
 pub mod map;
@@ -12,29 +8,36 @@ pub mod units;
 pub mod world;
 pub mod world_gen;
 
-pub struct GamePlugin {
-    pub config: config::EngineConfig,
-}
+use crate::prelude::*;
+
+pub struct GamePlugin {}
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         // Stage that will tick time
         let mut game_tick_stage = SystemStage::parallel();
-        game_tick_stage.add_system(game_tick.run_in_state(InGameState::Running));
+        game_tick_stage.add_system_set(
+            ConditionSet::new()
+                .label_and_after(config::GameTickStageLabel::Tick)
+                .run_in_state(InGameState::Running)
+                .with_system(game_tick)
+                .into(),
+        );
 
-        app.add_enter_system(self.config.load_world, world_gen::build_world)
+        app.add_enter_system(config::EngineState::LoadingWorld, world_gen::build_world)
             .add_loopless_state(InGameState::Paused)
             .add_plugin(InputManagerPlugin::<actions::WorldActions>::default())
             .add_plugin(InputManagerPlugin::<actions::SelectActions>::default())
-            .add_system(
-                handle_world_actions
-                    .run_in_state(self.config.run_game)
-                    .label("game_actions")
-                    .after("input"),
+            .add_system_set(
+                ConditionSet::new()
+                    .label_and_after(config::UpdateStageLabel::GameActions)
+                    .run_in_state(config::EngineState::InGame)
+                    .with_system(handle_world_actions)
+                    .into(),
             )
             .add_stage_after(
                 CoreStage::Update,
-                "game_tick",
+                config::Stage::GameTick,
                 FixedTimestepStage::new(Duration::from_millis(1000)).with_stage(game_tick_stage),
             );
     }

@@ -1,36 +1,28 @@
-use bevy::prelude::*;
 use bevy_pixel_camera::PixelProjection;
-use iyes_loopless::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::{config, game};
+use crate::prelude::*;
 
 mod camera;
 mod gui;
-pub struct InputPlugin {
-    pub config: config::EngineConfig,
-}
+pub struct InputPlugin {}
 
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(bevy::input::system::exit_on_esc_system)
             .add_system(bevy::window::exit_on_window_close_system)
             .add_plugin(InputManagerPlugin::<InputActions>::default())
-            .add_enter_system(self.config.run_game, setup)
+            .add_enter_system(config::EngineState::InGame, setup)
             .add_system_set(
                 ConditionSet::new()
-                    .label("input")
-                    .run_in_state(self.config.run_game)
+                    .label_and_after(config::UpdateStageLabel::Input)
+                    .run_in_state(config::EngineState::InGame)
                     .with_system(input_to_game_actions)
                     .with_system(interact)
                     .into(),
             )
-            .add_plugin(camera::CameraPlugin {
-                config: self.config,
-            })
-            .add_plugin(gui::GuiPlugin {
-                config: self.config,
-            });
+            .add_plugin(camera::CameraPlugin {})
+            .add_plugin(gui::GuiPlugin {});
     }
 }
 

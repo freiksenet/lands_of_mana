@@ -1,14 +1,13 @@
-use bevy::{ecs::system::EntityCommands, prelude::*};
-use iyes_loopless::prelude::*;
+use bevy::ecs::system::EntityCommands;
 use leafwing_input_manager::prelude::*;
 use strum::IntoEnumIterator;
 
-use crate::{
-    config,
+use crate::prelude::{
     game::{actions, map, units, world},
+    *,
 };
 
-pub fn build_world(mut commands: Commands, config: Res<config::EngineConfig>) {
+pub fn build_world(mut commands: Commands) {
     commands
         .spawn()
         .insert(world::GameWorld {
@@ -31,9 +30,8 @@ pub fn build_world(mut commands: Commands, config: Res<config::EngineConfig>) {
                     build_province(world.spawn(), p_x, p_y, 4, 2);
                 }
             }
-        })
-        .with_children(build_units);
-    commands.insert_resource(NextState(config.after_load_world));
+        });
+    commands.insert_resource(NextState(config::EngineState::LoadingWorld.next()));
 }
 
 fn build_player(mut entity: EntityCommands) {
@@ -41,6 +39,10 @@ fn build_player(mut entity: EntityCommands) {
         .insert_bundle(world::PlayerBundle {
             color: world::PlayerColor(Color::RED),
             name: world::PlayerName("Merlin".to_string()),
+        })
+        .insert_bundle(TransformBundle {
+            local: Transform::identity(),
+            global: GlobalTransform::identity(),
         })
         .insert(world::Viewer {})
         .with_children(|builder| {
@@ -55,7 +57,8 @@ fn build_player(mut entity: EntityCommands) {
             for res_type in world::CapacityResourceType::iter() {
                 builder.spawn_bundle(world::PlayerCapacityBundle { resource: res_type });
             }
-        });
+        })
+        .with_children(build_units);
 }
 
 fn build_province(mut entity: EntityCommands, p_x: u32, p_y: u32, p_xmax: u32, p_ymax: u32) {
@@ -127,25 +130,13 @@ fn build_province(mut entity: EntityCommands, p_x: u32, p_y: u32, p_xmax: u32, p
 }
 
 fn build_units(entity: &mut ChildBuilder) {
-    // entity.spawn().insert_bundle(units::UnitBundle {
-    //     position: map::Position { x: 36, y: 20 },
-    //     unit: units::Unit {
-    //         unit_type: units::UnitType::DebugBox,
-    //     },
-    //     figures: units::UnitFigures { health: vec![1, 1] },
-    // });
+    let parent_entity = entity.parent_entity();
     units::UnitBundle::insert_full(
-        &mut entity.spawn(),
+        entity.spawn().insert(world::OfPlayer(parent_entity)),
+        parent_entity,
         units::Unit {
             unit_type: units::UnitType::Skeleton,
         },
         map::Position { x: 37, y: 20 },
-    );
-    units::UnitBundle::insert_full(
-        &mut entity.spawn(),
-        units::Unit {
-            unit_type: units::UnitType::DebugBox,
-        },
-        map::Position { x: 0, y: 0 },
     );
 }

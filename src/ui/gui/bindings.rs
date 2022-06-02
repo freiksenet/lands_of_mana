@@ -19,6 +19,15 @@ pub struct PlayerCapacityResource {
     // Tooltip stuff here maybe? could be separate type
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct PixelWindow(pub f32, pub f32);
+
+impl Default for PixelWindow {
+    fn default() -> PixelWindow {
+        PixelWindow(200., 200.)
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Default)]
 
 pub struct PlayerResources {
@@ -28,10 +37,13 @@ pub struct PlayerResources {
 
 pub fn setup_binding_resources(
     mut commands: Commands,
+    windows: Res<Windows>,
     game_time_query: Query<&game::GameTime>,
     game_state: Res<CurrentState<game::InGameState>>,
 ) {
     let game_time = game_time_query.single();
+    let window = windows.get_primary().unwrap();
+    commands.insert_resource(bind(PixelWindow(window.width(), window.height())));
     commands.insert_resource(bind(*game_time));
     commands.insert_resource(bind(game_state.0));
     commands.insert_resource(bind(PlayerResources {
@@ -80,13 +92,26 @@ pub fn bindings_system_set() -> SystemSet {
     ConditionSet::new()
         .run_in_state(config::EngineState::InGame)
         .label_and_after(config::UiSyncLabel::Bindings)
+        .with_system(bind_pixel_window)
         .with_system(bind_game_time)
         .with_system(bind_game_state)
         .with_system(bind_current_player_resources)
         .into()
 }
 
-pub fn bind_game_time(
+fn bind_pixel_window(
+    window_binding: ResMut<Binding<PixelWindow>>,
+    projection_query: Query<
+        &ui::gui::camera::UIOrthographicProjection,
+        Changed<ui::gui::camera::UIOrthographicProjection>,
+    >,
+) {
+    if let Ok(projection) = projection_query.get_single() {
+        window_binding.set(PixelWindow(projection.right, projection.bottom));
+    }
+}
+
+fn bind_game_time(
     game_time_binding: ResMut<Binding<game::GameTime>>,
     game_time_query: Query<&game::GameTime, Changed<game::GameTime>>,
 ) {
@@ -96,7 +121,7 @@ pub fn bind_game_time(
     }
 }
 
-pub fn bind_game_state(
+fn bind_game_state(
     game_state_binding: ResMut<Binding<game::InGameState>>,
     game_state: Res<CurrentState<game::InGameState>>,
 ) {
@@ -106,7 +131,7 @@ pub fn bind_game_state(
 }
 
 // Assumes one player exists
-pub fn bind_current_player_resources(
+fn bind_current_player_resources(
     _commands: Commands,
     player_resources_binding: ResMut<Binding<PlayerResources>>,
     stockpile_resources_query: Query<(

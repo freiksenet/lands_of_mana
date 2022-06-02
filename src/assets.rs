@@ -59,6 +59,9 @@ pub struct UiAssets {
 
     #[asset(path = "ui/bg/ui_window_scroll.png")]
     pub window_scroll: Handle<Image>,
+
+    #[asset(path = "ui/bg/ui_window_paper_top.png")]
+    pub window_paper_top: Handle<Image>,
 }
 
 #[derive(AssetCollection)]

@@ -29,10 +29,10 @@ pub struct ToolbarProps {
 pub fn Toolbar(props: ToolbarProps) {
     let style = Style {
         offset: StyleProp::Value(Edge {
-            left: Units::Pixels(8.),
+            left: Units::Pixels(4.),
             ..Default::default()
         }),
-        width: StyleProp::Value(Units::Pixels(72.)),
+        width: StyleProp::Value(Units::Pixels(32.)),
         layout_type: StyleProp::Value(LayoutType::Row),
         background_color: StyleProp::Value(Color::new(0., 0., 0., 0.)),
         ..Style::default()
@@ -78,8 +78,8 @@ fn ToolbarButton(props: ToolbarButtonProps) {
 
     rsx! {
     <Image handle={handle} styles={Some(Style {
-            width: StyleProp::Value(Units::Pixels(32.)),
-            height: StyleProp::Value(Units::Pixels(32.)),
+            width: StyleProp::Value(Units::Pixels(16.)),
+            height: StyleProp::Value(Units::Pixels(16.)),
             ..Style::default()
           })}
           on_event={Some(on_event)}

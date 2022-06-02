@@ -17,10 +17,6 @@ use crate::prelude::*;
 #[widget]
 pub fn Resources() {
     let style = Style {
-        offset: StyleProp::Value(Edge {
-            left: Units::Pixels(8.),
-            ..Default::default()
-        }),
         width: StyleProp::Value(Units::Stretch(1.)),
         layout_type: StyleProp::Value(LayoutType::Row),
         background_color: StyleProp::Value(Color::new(0., 0., 0., 0.)),
@@ -33,7 +29,6 @@ pub fn Resources() {
         );
     context.bind(&resources_binding);
     let resources = resources_binding.get();
-    println!("{:?}", resources);
 
     rsx! {
       <Element styles={Some(style)}>
@@ -62,8 +57,7 @@ pub struct StockpileResourceProps {
 #[widget]
 pub fn StockpileResource(props: StockpileResourceProps) {
     let style = Style {
-        offset: StyleProp::Value(Edge::axis(Units::Auto, Units::Pixels(4.))),
-        width: StyleProp::Value(Units::Auto),
+        width: StyleProp::Value(Units::Stretch(1.)),
 
         ..Style::default()
     };
@@ -78,8 +72,8 @@ pub fn StockpileResource(props: StockpileResourceProps) {
       <Element styles={Some(style)}>
         <Text
           content={format!("{:?}:\u{00A0}{:}", props.resource_type, props.resource.amount)}
-          size={24.}
-          line_height={Some(32.)}
+          size={15.}
+          line_height={Some(18.)}
           styles={Some(text_style)}
           />
       </Element>
@@ -97,8 +91,7 @@ pub struct CapacityResourceProps {
 #[widget]
 pub fn CapacityResource(props: CapacityResourceProps) {
     let style = Style {
-        offset: StyleProp::Value(Edge::axis(Units::Auto, Units::Pixels(4.))),
-        width: StyleProp::Value(Units::Auto),
+        width: StyleProp::Value(Units::Stretch(1.)),
 
         ..Style::default()
     };
@@ -112,8 +105,8 @@ pub fn CapacityResource(props: CapacityResourceProps) {
       <Element styles={Some(style)}>
         <Text
           content={format!("{:?}:\u{00A0}{:}/{:}", props.resource_type, props.resource.free, props.resource.total)}
-          size={24.}
-          line_height={Some(32.)}
+          size={15.}
+          line_height={Some(18.)}
           styles={Some(text_style)}
          />
       </Element>

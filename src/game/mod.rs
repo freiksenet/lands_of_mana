@@ -5,6 +5,7 @@ use leafwing_input_manager::prelude::*;
 pub mod actions;
 pub mod load_map;
 pub mod map;
+pub mod province;
 pub mod units;
 pub mod world;
 

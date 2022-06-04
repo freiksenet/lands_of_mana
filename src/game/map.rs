@@ -1,5 +1,4 @@
 use num_derive::FromPrimitive;
-use strum_macros::{EnumIter, EnumString};
 
 use crate::prelude::*;
 
@@ -33,50 +32,6 @@ impl Map {
 }
 
 #[derive(Component, Debug, Clone)]
-pub struct Province {
-    pub name: String,
-}
-
-#[derive(Component, Clone, Copy, Debug)]
-pub struct ProvinceId(pub Entity);
-
-impl Default for ProvinceId {
-    fn default() -> Self {
-        Self(Entity::from_raw(0))
-    }
-}
-
-#[derive(Component, Clone, Copy, Debug)]
-pub struct City {
-    pub city_type: CityType,
-}
-
-#[derive(Component, Clone, Copy, Debug, EnumString, EnumIter)]
-pub enum CityType {
-    City1,
-    City2,
-    Desert,
-    Barbarian,
-    Mystic,
-    Pyramid,
-    Dwarf,
-    Lizardmen,
-    Elf,
-}
-
-#[derive(Bundle, Clone, Debug)]
-pub struct CityBundle {
-    pub province: ProvinceId,
-    pub position: Position,
-    pub city: City,
-}
-
-#[derive(Component, Debug, Clone)]
-pub struct InProvince {
-    pub province: Entity,
-}
-
-#[derive(Component, Debug, Clone)]
 pub struct ProvinceBorder {
     pub color: Color,
 }
@@ -94,7 +49,7 @@ pub struct Position {
 
 #[derive(Bundle, Clone, Debug)]
 pub struct TerrainBundle {
-    pub province: ProvinceId,
+    pub province: super::province::InProvince,
     pub position: Position,
     pub base: TerrainBase,
 }

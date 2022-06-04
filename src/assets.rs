@@ -12,6 +12,7 @@ impl Plugin for AssetLoadingPlugin {
             .with_collection::<CreatureAssets>()
             .with_collection::<UiAssets>()
             .with_collection::<FontAssets>()
+            .with_collection::<IconAssets>()
             // .init_resource::<CombinedTileTexture>()
             .build(app);
     }
@@ -62,6 +63,25 @@ pub struct UiAssets {
 
     #[asset(path = "ui/bg/ui_window_paper_top.png")]
     pub window_paper_top: Handle<Image>,
+}
+
+#[derive(AssetCollection)]
+pub struct IconAssets {
+    #[asset(path = "ui/icons/mana-arcana.png")]
+    pub mana_arcana: Handle<Image>,
+    #[asset(path = "ui/icons/mana-chaos.png")]
+    pub mana_chaos: Handle<Image>,
+    #[asset(path = "ui/icons/mana-death.png")]
+    pub mana_death: Handle<Image>,
+    #[asset(path = "ui/icons/mana-nature.png")]
+    pub mana_nature: Handle<Image>,
+    #[asset(path = "ui/icons/mana-sun.png")]
+    pub mana_sun: Handle<Image>,
+
+    #[asset(path = "ui/icons/res-gold.png")]
+    pub res_gold: Handle<Image>,
+    #[asset(path = "ui/icons/res-wood.png")]
+    pub res_wood: Handle<Image>,
 }
 
 #[derive(AssetCollection)]

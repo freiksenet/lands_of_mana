@@ -1,4 +1,4 @@
-use std::{collections::HashMap, path::Path};
+use std::{collections::HashMap, path::Path, str::FromStr};
 
 use euclid::point2;
 use fart_2d_geom::ConvexPolygon;
@@ -6,9 +6,10 @@ use num_traits::FromPrimitive;
 use strum_macros::{Display, EnumIter, EnumString};
 use tiled::{
     Chunk, FiniteTileLayer, InfiniteTileLayer, LayerType, Loader, Map, ObjectLayer, ObjectShape,
-    TileLayer,
+    PropertyValue, TileLayer,
 };
 
+use super::province::CityBundle;
 use crate::prelude::*;
 
 pub fn load_map(mut commands: Commands) {
@@ -22,8 +23,41 @@ pub fn load_map(mut commands: Commands) {
     let height = base_layer.height();
 
     let world_entity = commands
-        .spawn_bundle((super::GameWorld {}, super::map::Map { width, height }))
+        .spawn_bundle((game::GameWorld {}, game::map::Map { width, height }))
         .id();
+
+    let player = commands
+        .spawn_bundle(game::world::PlayerBundle {
+            color: game::world::PlayerColor(Color::RED),
+            name: game::world::PlayerName("PLAYER".to_string()),
+        })
+        .with_children(|builder| {
+            builder.spawn_bundle(game::world::PlayerStockpileBundle {
+                resource: game::world::StockpileResourceType::Gold,
+                amount: game::world::StockpileResourceAmount(100.),
+            });
+            builder.spawn_bundle(game::world::PlayerStockpileBundle {
+                resource: game::world::StockpileResourceType::Wood,
+                amount: game::world::StockpileResourceAmount(50.),
+            });
+            builder.spawn_bundle(game::world::PlayerCapacityBundle {
+                resource: game::world::CapacityResourceType::Sun,
+            });
+            builder.spawn_bundle(game::world::PlayerCapacityBundle {
+                resource: game::world::CapacityResourceType::Arcana,
+            });
+            builder.spawn_bundle(game::world::PlayerCapacityBundle {
+                resource: game::world::CapacityResourceType::Death,
+            });
+            builder.spawn_bundle(game::world::PlayerCapacityBundle {
+                resource: game::world::CapacityResourceType::Chaos,
+            });
+            builder.spawn_bundle(game::world::PlayerCapacityBundle {
+                resource: game::world::CapacityResourceType::Nature,
+            });
+        })
+        .id();
+    commands.entity(world_entity).add_child(player);
 
     let mut province_polygons = Vec::new();
     let province_layer = get_object_layer(&map, ObjectLayerName::Provinces);
@@ -38,7 +72,7 @@ pub fn load_map(mut commands: Commands) {
             .unwrap();
             let province_entity = commands
                 .spawn()
-                .insert(super::map::Province {
+                .insert(game::province::Province {
                     name: province.id().to_string(),
                 })
                 .id();
@@ -58,17 +92,42 @@ pub fn load_map(mut commands: Commands) {
                 let x = map_x;
                 let y = height - map_y - 1;
                 let terrain = commands
-                    .spawn_bundle(super::map::TerrainBundle {
-                        province: super::map::ProvinceId(*province_entity),
-                        position: super::map::Position { x, y },
-                        base: super::map::TerrainBase {
-                            terrain_type: super::map::TerrainType::from_u32(tile.id()).unwrap(),
+                    .spawn_bundle(game::map::TerrainBundle {
+                        province: game::province::InProvince(*province_entity),
+                        position: game::map::Position { x, y },
+                        base: game::map::TerrainBase {
+                            terrain_type: game::map::TerrainType::from_u32(tile.id()).unwrap(),
                         },
                     })
                     .id();
                 commands.entity(*province_entity).add_child(terrain);
             } else {
-                panic!("NOT FOUND{:?}", (center_point, tile.id()));
+                panic!("NOT FOUND{:?}", (map_x, map_y, center_point, tile.id()));
+            }
+        }
+    }
+
+    let cities_layer = get_object_layer(&map, ObjectLayerName::Cities);
+    for city in cities_layer.objects() {
+        let center_point = point2(city.x, city.y);
+        let province_option = province_polygons
+            .iter()
+            .find(|(_, polygon)| polygon.contains_point(center_point));
+        if let Some((province_entity, _)) = province_option {
+            let x = (city.x / 16.) as u32;
+            let y = height - (city.y / 16.) as u32 - 1;
+            if let Some(PropertyValue::StringValue(city_type_str)) =
+                city.properties.get("city_type")
+            {
+                let city_type = game::province::CityType::from_str(city_type_str).unwrap();
+                let city = CityBundle::new_empty_city(
+                    &mut commands.spawn(),
+                    player,
+                    city_type.get_city_stats(),
+                    *province_entity,
+                    game::map::Position { x, y },
+                );
+                commands.entity(*province_entity).add_child(city);
             }
         }
     }
@@ -111,5 +170,6 @@ enum TileLayerName {
 #[derive(Clone, Copy, Debug, EnumString, EnumIter, Display)]
 enum ObjectLayerName {
     Sites,
+    Cities,
     Provinces,
 }

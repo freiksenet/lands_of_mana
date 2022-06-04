@@ -1,15 +1,11 @@
-use kayak_core::{
-    styles::{Edge, LayoutType},
-    Binding, Bound, Color,
-};
-use kayak_render_macros::WidgetProps;
 use kayak_ui::{
+    bevy::ImageManager,
     core::{
         constructor, rsx,
-        styles::{Style, StyleProp, Units},
-        widget, VecTracker,
+        styles::{Edge, LayoutType, Style, StyleProp, Units},
+        widget, Binding, Bound, Color, VecTracker, WidgetProps,
     },
-    widgets::{Element, Text},
+    widgets::{Element, Image, Text},
 };
 
 use crate::prelude::*;
@@ -56,24 +52,48 @@ pub struct StockpileResourceProps {
 
 #[widget]
 pub fn StockpileResource(props: StockpileResourceProps) {
+    let icon = {
+        let mut world = context.get_global_mut::<World>().unwrap();
+        let cell = world.cell();
+        let icon_assets = cell.get_resource::<assets::IconAssets>().unwrap();
+        let mut image_manager = cell.get_resource_mut::<ImageManager>().unwrap();
+        image_manager.get(&match (props.resource_type) {
+            game::world::StockpileResourceType::Gold => icon_assets.res_gold.clone(),
+            game::world::StockpileResourceType::Wood => icon_assets.res_wood.clone(),
+        })
+    };
+
     let style = Style {
-        width: StyleProp::Value(Units::Stretch(1.)),
+        layout_type: StyleProp::Value(LayoutType::Row),
+        padding: StyleProp::Value(Edge::all(Units::Stretch(1.))),
+        width: StyleProp::Value(Units::Pixels(70.)),
 
         ..Style::default()
     };
 
     let text_style = Style {
-        layout_type: StyleProp::Value(LayoutType::Row),
         color: StyleProp::Value(Color::new(0., 0., 0., 1.)),
         ..Style::default()
     };
 
+    let icon_style = Style {
+        width: StyleProp::Value(Units::Pixels(14.)),
+        height: StyleProp::Value(Units::Pixels(14.)),
+        ..Style::default()
+    };
+
+    let income_text = if (props.resource.income >= 0.) {
+        format!("+{:}", props.resource.income)
+    } else {
+        format!("-{:}", props.resource.income.abs())
+    };
+
     rsx! {
       <Element styles={Some(style)}>
+        <Image handle={icon} styles={Some(icon_style)} />
         <Text
-          content={format!("{:?}:\u{00A0}{:}", props.resource_type, props.resource.amount)}
+          content={format!("{:}{:}", props.resource.amount, income_text)}
           size={15.}
-          line_height={Some(18.)}
           styles={Some(text_style)}
           />
       </Element>
@@ -90,9 +110,31 @@ pub struct CapacityResourceProps {
 
 #[widget]
 pub fn CapacityResource(props: CapacityResourceProps) {
+    let icon = {
+        let mut world = context.get_global_mut::<World>().unwrap();
+        let cell = world.cell();
+        let icon_assets = cell.get_resource::<assets::IconAssets>().unwrap();
+        let mut image_manager = cell.get_resource_mut::<ImageManager>().unwrap();
+        image_manager.get(&match (props.resource_type) {
+            game::world::CapacityResourceType::Sun => icon_assets.mana_sun.clone(),
+            game::world::CapacityResourceType::Arcana => icon_assets.mana_arcana.clone(),
+            game::world::CapacityResourceType::Death => icon_assets.mana_death.clone(),
+            game::world::CapacityResourceType::Chaos => icon_assets.mana_chaos.clone(),
+            game::world::CapacityResourceType::Nature => icon_assets.mana_nature.clone(),
+        })
+    };
+
     let style = Style {
+        padding: StyleProp::Value(Edge::all(Units::Stretch(1.))),
+        layout_type: StyleProp::Value(LayoutType::Row),
         width: StyleProp::Value(Units::Stretch(1.)),
 
+        ..Style::default()
+    };
+
+    let icon_style = Style {
+        width: StyleProp::Value(Units::Pixels(14.)),
+        height: StyleProp::Value(Units::Pixels(14.)),
         ..Style::default()
     };
 
@@ -103,10 +145,10 @@ pub fn CapacityResource(props: CapacityResourceProps) {
 
     rsx! {
       <Element styles={Some(style)}>
+        <Image handle={icon} styles={Some(icon_style)} />
         <Text
-          content={format!("{:?}:\u{00A0}{:}/{:}", props.resource_type, props.resource.free, props.resource.total)}
+          content={format!("{:}/{:}", props.resource.free, props.resource.total)}
           size={15.}
-          line_height={Some(18.)}
           styles={Some(text_style)}
          />
       </Element>

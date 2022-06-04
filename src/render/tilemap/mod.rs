@@ -22,7 +22,7 @@ pub fn setup(
         &game::map::TerrainBase,
         Option<&game::map::ProvinceBorder>,
     )>,
-    city_query: Query<(Entity, &game::map::Position, &game::map::City)>,
+    city_query: Query<(Entity, &game::map::Position, &game::province::CityType)>,
 ) {
     let (game_world_entity, map) = map_query.single();
 
@@ -294,23 +294,16 @@ fn build_background(
 
 fn build_city_tiles(
     game_position: &game::map::Position,
-    city: &game::map::City,
+    city_type: &game::province::CityType,
 ) -> Vec<TileBundle> {
     // Top right corner
-    let base_tile = match city.city_type {
-        game::map::CityType::City1 => 896,
-        game::map::CityType::City2 => 900,
-        game::map::CityType::Desert => 904,
-        game::map::CityType::Barbarian => 908,
-        game::map::CityType::Mystic => 960,
-        game::map::CityType::Pyramid => 964,
-        game::map::CityType::Dwarf => 972,
-        game::map::CityType::Lizardmen => 1032,
-        game::map::CityType::Elf => 1100,
+    let (base_tile, width, height) = match city_type {
+        game::province::CityType::Capital => (736, 3, 3),
+        game::province::CityType::City => (588, 2, 2),
     };
     let mut city_tiles = Vec::new();
-    for x in 0..4 {
-        for y in 0..4 {
+    for x in 0..width {
+        for y in 0..height {
             let position = TilePos2d {
                 x: game_position.x + x,
                 y: game_position.y + y,
@@ -318,7 +311,7 @@ fn build_city_tiles(
             // coordinates are from bottom left corner, while textures are from top right
             city_tiles.push(TileBundle {
                 position,
-                texture: TileTexture(base_tile + x + ((3 - y) * 16)),
+                texture: TileTexture(base_tile + x + ((height - y - 1) * 16)),
                 ..Default::default()
             });
         }

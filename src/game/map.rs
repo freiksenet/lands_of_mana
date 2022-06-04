@@ -1,6 +1,36 @@
+use num_derive::FromPrimitive;
 use strum_macros::{EnumIter, EnumString};
 
 use crate::prelude::*;
+
+#[derive(Component, Debug, Clone)]
+pub struct Map {
+    pub width: u32,
+    pub height: u32,
+}
+
+impl Map {
+    /// Get world midpoint in pixels
+    pub fn get_pixel_midpoint(&self) -> Vec2 {
+        Vec2::new(
+            (self.width * 16) as f32 / 2. - 8.,
+            (self.height * 16) as f32 / 2. - 8.,
+        )
+    }
+
+    pub fn pixel_position_to_position(&self, pixel_position: Vec2) -> game::map::Position {
+        let corner_position = pixel_position + self.get_pixel_midpoint();
+        game::map::Position {
+            x: ((corner_position.x + 8.) / 16.0).floor() as u32,
+            y: ((corner_position.y + 8.) / 16.0).floor() as u32,
+        }
+    }
+
+    /// for position, get pixel position of (0,0) of a tile
+    pub fn position_to_pixel_position(&self, position: &game::map::Position) -> Vec2 {
+        Vec2::new((position.x * 16) as f32, (position.y * 16) as f32) - self.get_pixel_midpoint()
+    }
+}
 
 #[derive(Component, Debug, Clone)]
 pub struct Province {
@@ -72,7 +102,7 @@ pub struct TerrainBundle {
 /// Terrain number indicates priority ordering when rendering (higher = higher priority)
 /// It is also a texture id for base land
 #[allow(dead_code)]
-#[derive(Clone, Debug, Copy, PartialOrd, Ord, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Copy, PartialOrd, Ord, Eq, PartialEq, Hash, FromPrimitive)]
 pub enum TerrainType {
     Water = 0,
     WaterOcean = 1,

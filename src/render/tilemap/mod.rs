@@ -15,7 +15,7 @@ use crate::{assets, game};
 pub fn setup(
     mut commands: Commands,
     tiles: ResMut<assets::TileAssets>,
-    world_query: Query<(Entity, &game::world::GameWorld)>,
+    map_query: Query<(Entity, &game::map::Map)>,
     terrain_query: Query<(
         Entity,
         &game::map::Position,
@@ -24,17 +24,17 @@ pub fn setup(
     )>,
     city_query: Query<(Entity, &game::map::Position, &game::map::City)>,
 ) {
-    let (game_world_entity, game_world) = world_query.single();
+    let (game_world_entity, map) = map_query.single();
 
     let size = Tilemap2dSize {
-        x: game_world.width,
-        y: game_world.height,
+        x: map.width,
+        y: map.height,
     };
 
     let temp_storage = Tile2dStorage::empty(size);
 
     let mut tilemap_layer_manager =
-        layers::TilemapLayerManager::new(&mut commands.entity(game_world_entity), game_world);
+        layers::TilemapLayerManager::new(&mut commands.entity(game_world_entity), map);
 
     commands.entity(game_world_entity).with_children(|builder| {
         builder.spawn().with_children(|builder| {

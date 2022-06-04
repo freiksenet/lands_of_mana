@@ -11,44 +11,216 @@
 ///
 use std::{cmp::min, collections::BTreeMap, fmt::Debug, ops::Add};
 
+use bevy::utils::HashSet;
 use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 
 use super::game::map::TerrainType;
 
-#[derive(Clone, Debug, PartialEq, Eq, FromPrimitive, Copy)]
-pub enum Corner {
+// This is single pieces of Blob indicating that a certain terrain is on
+// a certain corner
+#[derive(Clone, Debug, PartialEq, Eq, FromPrimitive, Copy, Hash)]
+pub enum BlobPiece {
+    // Blob 0
     Empty = 0,
-    LeftTop = 8,
-    RightTop = 1,
-    LeftBottom = 4,
-    RightBottom = 2,
-    Left = 12,
-    Top = 9,
-    Right = 3,
-    Bottom = 6,
-    LeftTopL = 13,
-    RightTopL = 11,
-    LeftBottomL = 14,
-    RightBottomL = 7,
-    LeftTopAndRightBottom = 10,
-    LeftBottomAndRightTop = 5,
-    Square = 15,
+
+    // Blob 1
+    North = 1,
+    NorthEast = 2,
+    East = 4,
+    SouthEast = 8,
+    South = 16,
+    SouthWest = 32,
+    West = 64,
+    NorthWest = 128,
+}
+// This is a combination of pieces of blob
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Blob {
+    pub corners: HashSet<BlobPiece>,
 }
 
-impl Add for Corner {
-    type Output = Corner;
+impl Blob {
+    pub fn new(corners: Vec<BlobPiece>) -> Blob {
+        Blob {
+            corners: HashSet::from_iter(corners.into_iter()),
+        }
+    }
 
-    fn add(self, other: Corner) -> Corner {
-        let value = self as usize + other as usize;
-        FromPrimitive::from_usize(min(value, Corner::Square as usize)).unwrap()
+    pub fn add(&mut self, piece: BlobPiece) {
+        self.corners.insert(piece);
+    }
+
+    pub fn add_blob(&mut self, other: Blob) {
+        for corner in other.corners.iter() {
+            self.add(*corner);
+        }
+    }
+
+    pub fn blob_id(&self) -> usize {
+        self.corners
+            .iter()
+            .fold(0, |acc, next| acc + *next as usize)
+    }
+}
+
+// This is a tile type that we can render uniquely
+enum TerrainConnectorType {
+    None, // This includes everything we have missed also
+    CornerNorthEast,
+    CornerSouthEast,
+    CornerSouthWest,
+    CornerNorthWest,
+    EdgeNorth,
+    EdgeEast,
+    EdgeWest,
+    EdgeSouth,
+    LNorthEast,
+    LSouthEast,
+    LSouthWest,
+    LNorthWest,
+    CornersSouthWestAndNorthEast,
+    CornersNorthWestAndSouthEast,
+}
+
+impl TerrainConnectorType {
+    #[allow(non_snake_case)]
+    pub fn from_blob(blob: &Blob) -> TerrainConnectorType {
+        let North: usize = BlobPiece::North as usize;
+        let NorthEast: usize = BlobPiece::NorthEast as usize;
+        let East: usize = BlobPiece::East as usize;
+        let SouthEast: usize = BlobPiece::SouthEast as usize;
+        let South: usize = BlobPiece::South as usize;
+        let SouthWest: usize = BlobPiece::SouthWest as usize;
+        let West: usize = BlobPiece::West as usize;
+        let NorthWest: usize = BlobPiece::NorthWest as usize;
+        let blob_id = blob.blob_id();
+        match blob_id {
+            b if b == NorthEast => TerrainConnectorType::CornerNorthEast,
+            b if b == NorthWest => TerrainConnectorType::CornerNorthWest,
+            b if b == SouthEast => TerrainConnectorType::CornerSouthEast,
+            b if b == SouthWest => TerrainConnectorType::CornerSouthWest,
+            b if [
+                North,
+                North + NorthEast,
+                North + NorthWest,
+                NorthWest + NorthEast,
+                North + NorthWest + NorthEast,
+            ]
+            .contains(&b) =>
+            {
+                TerrainConnectorType::EdgeNorth
+            }
+            b if [
+                East,
+                East + SouthEast,
+                East + NorthEast,
+                NorthEast + SouthEast,
+                East + NorthEast + SouthEast,
+            ]
+            .contains(&b) =>
+            {
+                TerrainConnectorType::EdgeEast
+            }
+            b if [
+                South,
+                South + SouthWest,
+                South + SouthEast,
+                SouthWest + SouthEast,
+                South + SouthWest + SouthEast,
+            ]
+            .contains(&b) =>
+            {
+                TerrainConnectorType::EdgeSouth
+            }
+            b if [
+                West,
+                West + NorthWest,
+                West + SouthWest,
+                SouthWest + NorthWest,
+                West + NorthWest + SouthWest,
+            ]
+            .contains(&b) =>
+            {
+                TerrainConnectorType::EdgeWest
+            }
+            // // NorthEastCorner
+            b if [
+                North + East,
+                North + East + NorthEast,
+                North + East + NorthWest,
+                North + East + SouthEast,
+                North + East + NorthWest + SouthEast,
+                North + East + NorthEast + NorthWest,
+                North + East + NorthEast + SouthEast,
+                North + East + NorthEast + NorthWest + SouthEast,
+            ]
+            .contains(&b) =>
+            {
+                TerrainConnectorType::LNorthEast
+            }
+            b if [
+                South + East,
+                South + East + SouthEast,
+                South + East + NorthEast,
+                South + East + SouthWest,
+                South + East + SouthWest + SouthEast,
+                South + East + NorthEast + SouthWest,
+                South + East + NorthEast + SouthEast,
+                South + East + NorthEast + SouthWest + SouthEast,
+            ]
+            .contains(&b) =>
+            {
+                TerrainConnectorType::LSouthEast
+            }
+            b if [
+                South + West,
+                South + West + SouthWest,
+                South + West + NorthWest,
+                South + West + SouthEast,
+                South + West + NorthWest + SouthEast,
+                South + West + SouthWest + NorthWest,
+                South + West + SouthWest + SouthEast,
+                South + West + SouthWest + NorthWest + SouthEast,
+            ]
+            .contains(&b) =>
+            {
+                TerrainConnectorType::LSouthWest
+            }
+            b if [
+                North + West,
+                North + West + NorthWest,
+                North + West + NorthEast,
+                North + West + SouthEast,
+                North + West + NorthWest + SouthEast,
+                North + West + NorthWest + NorthEast,
+                North + West + NorthWest + SouthEast,
+                North + West + NorthWest + NorthEast + SouthEast,
+            ]
+            .contains(&b) =>
+            {
+                TerrainConnectorType::LNorthWest
+            }
+            //
+            b if [SouthWest + NorthEast].contains(&b) => {
+                TerrainConnectorType::CornersSouthWestAndNorthEast
+            }
+            b if [SouthEast + NorthWest].contains(&b) => {
+                TerrainConnectorType::CornersNorthWestAndSouthEast
+            }
+
+            b => {
+                println!("WARN: Missing tile connector {:?}", b);
+                TerrainConnectorType::None
+            }
+        }
     }
 }
 
 trait TerrainDescription {
     fn get_base_texture_id(&self) -> u32;
     fn get_base_variant(&self) -> Self;
-    fn get_texture_id_for_corner(&self, center: &TerrainType, corner: &Corner) -> Option<u32>;
+    fn get_texture_id_for_corner(&self, center: &TerrainType, corner: &Blob) -> Option<u32>;
 }
 
 const CONNECTOR_TERRAIN_SIZE: u32 = 54;
@@ -80,7 +252,7 @@ impl TerrainDescription for TerrainType {
     }
 
     /// return a texture id for connectors. Nothing means - don't draw anything (invalid connector most likely)
-    fn get_texture_id_for_corner(&self, center: &TerrainType, corner: &Corner) -> Option<u32> {
+    fn get_texture_id_for_corner(&self, center: &TerrainType, corner: &Blob) -> Option<u32> {
         let terrain = *self;
         let base_variant = terrain.get_base_variant();
         let base_center_variant = center.get_base_variant();
@@ -139,20 +311,19 @@ pub struct TerrainCorners {
 pub trait TerrainCornersTexture {
     fn get_tile_textures(&self) -> Vec<u32>;
 
-    fn get_higher_sides(&self) -> Vec<(TerrainType, Corner)>;
+    fn get_higher_sides(&self) -> Vec<(TerrainType, Blob)>;
 }
 
 impl TerrainCornersTexture for TerrainCorners {
-    fn get_higher_sides(&self) -> Vec<(TerrainType, Corner)> {
+    fn get_higher_sides(&self) -> Vec<(TerrainType, Blob)> {
         [
-            (self.west, Corner::Left),
-            (self.east, Corner::Right),
-            (self.north, Corner::Top),
-            (self.south, Corner::Bottom),
+            (self.west, Blob::new(vec![BlobPiece::West])),
+            (self.east, Blob::new(vec![BlobPiece::East])),
+            (self.north, Blob::new(vec![BlobPiece::North])),
+            (self.south, Blob::new(vec![BlobPiece::South])),
         ]
-        .iter()
+        .into_iter()
         .filter(|(terrain, _)| terrain > &self.center)
-        .copied()
         .collect()
     }
 
@@ -167,7 +338,7 @@ impl TerrainCornersTexture for TerrainCorners {
         {
             if let Some(corner) = self
                 .north_west
-                .get_texture_id_for_corner(&self.center, &Corner::LeftTop)
+                .get_texture_id_for_corner(&self.center, &Blob::new(vec![BlobPiece::NorthWest]))
             {
                 corners.push(corner);
             }
@@ -178,7 +349,7 @@ impl TerrainCornersTexture for TerrainCorners {
         {
             if let Some(corner) = self
                 .north_east
-                .get_texture_id_for_corner(&self.center, &Corner::RightTop)
+                .get_texture_id_for_corner(&self.center, &Blob::new(vec![BlobPiece::NorthEast]))
             {
                 corners.push(corner);
             }
@@ -189,7 +360,7 @@ impl TerrainCornersTexture for TerrainCorners {
         {
             if let Some(corner) = self
                 .south_west
-                .get_texture_id_for_corner(&self.center, &Corner::LeftBottom)
+                .get_texture_id_for_corner(&self.center, &Blob::new(vec![BlobPiece::SouthWest]))
             {
                 corners.push(corner);
             }
@@ -200,17 +371,21 @@ impl TerrainCornersTexture for TerrainCorners {
         {
             if let Some(corner) = self
                 .south_east
-                .get_texture_id_for_corner(&self.center, &Corner::RightBottom)
+                .get_texture_id_for_corner(&self.center, &Blob::new(vec![BlobPiece::SouthEast]))
             {
                 corners.push(corner);
             }
         }
 
-        let mut corner_map: BTreeMap<&TerrainType, Corner> = BTreeMap::new();
+        let mut corner_map: BTreeMap<&TerrainType, Blob> = BTreeMap::new();
         let sides = self.get_higher_sides();
         for (terrain, corner) in sides.iter() {
-            let existing_corner = corner_map.get(terrain).unwrap_or(&Corner::Empty);
-            corner_map.insert(terrain, *corner + *existing_corner);
+            corner_map
+                .entry(terrain)
+                .and_modify(|blob| {
+                    blob.add_blob(corner.clone());
+                })
+                .or_insert_with(|| corner.clone());
         }
 
         for (terrain, corner) in corner_map {
@@ -224,86 +399,96 @@ impl TerrainCornersTexture for TerrainCorners {
     }
 }
 
-fn get_water_texture_id(corner: &Corner) -> Option<u32> {
-    match corner {
-        Corner::LeftTop => Some(21),
-        Corner::RightTop => Some(20),
-        Corner::LeftBottom => Some(3),
-        Corner::RightBottom => Some(2),
-        Corner::Left => Some(24),
-        Corner::Top => Some(7),
-        Corner::Right => Some(26),
-        Corner::Bottom => Some(43),
-        Corner::LeftTopL => Some(4),
-        Corner::RightTopL => Some(5),
-        Corner::LeftBottomL => Some(22),
-        Corner::RightBottomL => Some(23),
-        Corner::LeftTopAndRightBottom => Some(36),
-        Corner::LeftBottomAndRightTop => Some(37),
-        Corner::Empty => None,
-        Corner::Square => None,
+fn get_water_texture_id(blob: &Blob) -> Option<u32> {
+    match TerrainConnectorType::from_blob(blob) {
+        TerrainConnectorType::CornerNorthEast => Some(20),
+        TerrainConnectorType::CornerSouthEast => Some(2),
+        TerrainConnectorType::CornerSouthWest => Some(3),
+        TerrainConnectorType::CornerNorthWest => Some(21),
+
+        TerrainConnectorType::EdgeNorth => Some(7),
+        TerrainConnectorType::EdgeEast => Some(26),
+        TerrainConnectorType::EdgeWest => Some(24),
+        TerrainConnectorType::EdgeSouth => Some(43),
+
+        TerrainConnectorType::LNorthEast => Some(5),
+        TerrainConnectorType::LSouthWest => Some(22),
+        TerrainConnectorType::LSouthEast => Some(23),
+        TerrainConnectorType::LNorthWest => Some(4),
+
+        TerrainConnectorType::CornersSouthWestAndNorthEast => Some(37),
+        TerrainConnectorType::CornersNorthWestAndSouthEast => Some(36),
+
+        _ => None,
     }
 }
 
-fn get_water_special_texture_id(corner: &Corner) -> Option<u32> {
-    match corner {
-        Corner::LeftTop => Some(30),
-        Corner::RightTop => Some(29),
-        Corner::LeftBottom => Some(11),
-        Corner::RightBottom => Some(10),
-        Corner::Left => Some(33),
-        Corner::Top => Some(16),
-        Corner::Right => Some(35),
-        Corner::Bottom => Some(52),
-        Corner::LeftTopL => Some(13),
-        Corner::RightTopL => Some(14),
-        Corner::LeftBottomL => Some(31),
-        Corner::RightBottomL => Some(32),
-        Corner::LeftTopAndRightBottom => Some(36),
-        Corner::LeftBottomAndRightTop => Some(37),
-        Corner::Empty => None,
-        Corner::Square => None,
+fn get_water_special_texture_id(blob: &Blob) -> Option<u32> {
+    match TerrainConnectorType::from_blob(blob) {
+        TerrainConnectorType::CornerNorthEast => Some(20),
+        TerrainConnectorType::CornerSouthEast => Some(10),
+        TerrainConnectorType::CornerSouthWest => Some(11),
+        TerrainConnectorType::CornerNorthWest => Some(30),
+
+        TerrainConnectorType::EdgeNorth => Some(16),
+        TerrainConnectorType::EdgeEast => Some(35),
+        TerrainConnectorType::EdgeWest => Some(33),
+        TerrainConnectorType::EdgeSouth => Some(52),
+
+        TerrainConnectorType::LNorthEast => Some(14),
+        TerrainConnectorType::LSouthWest => Some(31),
+        TerrainConnectorType::LSouthEast => Some(32),
+        TerrainConnectorType::LNorthWest => Some(13),
+
+        TerrainConnectorType::CornersSouthWestAndNorthEast => Some(37),
+        TerrainConnectorType::CornersNorthWestAndSouthEast => Some(36),
+
+        _ => None,
     }
 }
 
-fn get_variant_texture_id(corner: &Corner) -> Option<u32> {
-    match corner {
-        Corner::LeftTop => Some(49),
-        Corner::RightTop => Some(47),
-        Corner::LeftBottom => Some(13),
-        Corner::RightBottom => Some(11),
-        Corner::Left => Some(32),
-        Corner::Top => Some(15),
-        Corner::Right => Some(34),
-        Corner::Bottom => Some(51),
-        Corner::LeftTopL => Some(14),
-        Corner::RightTopL => Some(16),
-        Corner::LeftBottomL => Some(50),
-        Corner::RightBottomL => Some(52),
-        Corner::LeftTopAndRightBottom => Some(100),
-        Corner::LeftBottomAndRightTop => Some(99),
-        Corner::Empty => None,
-        Corner::Square => None,
+fn get_variant_texture_id(blob: &Blob) -> Option<u32> {
+    match TerrainConnectorType::from_blob(blob) {
+        // TerrainConnectorType::CornerNorthEast => Some(47),
+        // TerrainConnectorType::CornerSouthEast => Some(11),
+        // TerrainConnectorType::CornerSouthWest => Some(13),
+        // TerrainConnectorType::CornerNorthWest => Some(49),
+
+        // TerrainConnectorType::EdgeNorth => Some(15),
+        // TerrainConnectorType::EdgeEast => Some(34),
+        // TerrainConnectorType::EdgeWest => Some(32),
+        // TerrainConnectorType::EdgeSouth => Some(51),
+        TerrainConnectorType::LNorthEast => Some(16),
+        TerrainConnectorType::LSouthWest => Some(50),
+        TerrainConnectorType::LSouthEast => Some(52),
+        TerrainConnectorType::LNorthWest => Some(14),
+
+        // TerrainConnectorType::CornersSouthWestAndNorthEast => Some(99),
+        // TerrainConnectorType::CornersNorthWestAndSouthEast => Some(100),
+        _ => None,
     }
 }
 
-fn get_connector_texture_id(corner: &Corner) -> Option<u32> {
-    match corner {
-        Corner::LeftTop => Some(49),
-        Corner::RightTop => Some(47),
-        Corner::LeftBottom => Some(13),
-        Corner::RightBottom => Some(11),
-        Corner::Left => Some(32),
-        Corner::Top => Some(15),
-        Corner::Right => Some(34),
-        Corner::Bottom => Some(51),
-        Corner::LeftTopL => Some(27),
-        Corner::RightTopL => Some(28),
-        Corner::LeftBottomL => Some(45),
-        Corner::RightBottomL => Some(46),
-        Corner::LeftTopAndRightBottom => Some(9),
-        Corner::LeftBottomAndRightTop => Some(10),
-        Corner::Empty => None,
-        Corner::Square => None,
+fn get_connector_texture_id(blob: &Blob) -> Option<u32> {
+    match TerrainConnectorType::from_blob(blob) {
+        TerrainConnectorType::CornerNorthEast => Some(47),
+        TerrainConnectorType::CornerSouthEast => Some(11),
+        TerrainConnectorType::CornerSouthWest => Some(13),
+        TerrainConnectorType::CornerNorthWest => Some(49),
+
+        TerrainConnectorType::EdgeNorth => Some(15),
+        TerrainConnectorType::EdgeEast => Some(34),
+        TerrainConnectorType::EdgeWest => Some(32),
+        TerrainConnectorType::EdgeSouth => Some(51),
+
+        TerrainConnectorType::LNorthEast => Some(28),
+        TerrainConnectorType::LSouthWest => Some(45),
+        TerrainConnectorType::LSouthEast => Some(46),
+        TerrainConnectorType::LNorthWest => Some(27),
+
+        TerrainConnectorType::CornersSouthWestAndNorthEast => Some(10),
+        TerrainConnectorType::CornersNorthWestAndSouthEast => Some(9),
+
+        _ => None,
     }
 }

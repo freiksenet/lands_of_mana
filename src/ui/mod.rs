@@ -26,7 +26,7 @@ impl Plugin for InputPlugin {
     }
 }
 
-fn setup(mut commands: Commands, world_query: Query<Entity, With<game::world::GameWorld>>) {
+fn setup(mut commands: Commands, world_query: Query<Entity, With<game::GameWorld>>) {
     let world_entity = world_query.single();
     let mut input_map = InputMap::new([
         // pause / resume
@@ -73,7 +73,7 @@ fn input_to_game_actions(
 fn interact(
     windows: Res<Windows>,
     camera_transform_query: Query<(&Camera, &Transform), With<PixelProjection>>,
-    world_query: Query<&game::world::GameWorld>,
+    map_query: Query<&game::map::Map>,
     input_action_query: Query<&ActionState<InputActions>>,
     mut selectable_query: Query<(&game::map::Position, &mut Selectable)>,
 ) {
@@ -86,8 +86,8 @@ fn interact(
         if let Some(pixel_position) =
             camera::camera_position_to_pixel_position(window, camera, camera_transform)
         {
-            let world = world_query.single();
-            let cursor_position = world.pixel_position_to_position(pixel_position);
+            let map = map_query.single();
+            let cursor_position = map.pixel_position_to_position(pixel_position);
 
             for (position, mut selectable) in selectable_query.iter_mut() {
                 if &cursor_position == position {

@@ -82,11 +82,11 @@ pub fn setup(
     mut commands: Commands,
     creatures: Res<assets::CreatureAssets>,
     mut animations: ResMut<Assets<SpriteSheetAnimation>>,
-    world_query: Query<&game::world::GameWorld>,
+    map_query: Query<&game::map::Map>,
     unit_query: Query<(Entity, &game::map::Position, &game::units::Unit)>,
     figure_query: Query<(Entity, &Parent), With<game::units::UnitFigure>>,
 ) {
-    let world = world_query.single();
+    let map = map_query.single();
     let mut units_to_figures: HashMap<u32, Vec<Entity>> = HashMap::new();
     for (entity, parent) in figure_query.iter() {
         units_to_figures
@@ -100,7 +100,7 @@ pub fn setup(
         let (_, position, unit) = unit_query.get(unit_entity).unwrap();
 
         let base_position =
-            world.position_to_pixel_position(position).extend(0.) + Vec3::new(0., 0., 75.);
+            map.position_to_pixel_position(position).extend(0.) + Vec3::new(0., 0., 75.);
         commands.entity(unit_entity).insert_bundle(TransformBundle {
             local: Transform::from_translation(base_position),
             global: GlobalTransform::identity(),

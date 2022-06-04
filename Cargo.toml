@@ -41,6 +41,9 @@ num-derive = "0.3"
 bevy_pixel_camera = { git = "https://github.com/drakmaniso/bevy_pixel_camera", branch = "main" }
 bevy_framepace = "0.4.0"
 assoc = "0.1.1"
+tiled = "0.10.2"
+euclid = "0.20.1"
+fart-2d-geom = "0.4.0"
 
 [dependencies.bevy]
 version = "0.7"
@@ -96,8 +99,7 @@ features = [
 ]
 
 [dependencies.bevy_asset_loader]
-git = "https://github.com/NiklasEi/bevy_asset_loader"
-rev = "ba1ab31"
+version = "0.11.0"
 features = ["stageless", "2d"]
 
 [build-dependencies]

@@ -3,10 +3,10 @@ use std::time::Duration;
 use leafwing_input_manager::prelude::*;
 
 pub mod actions;
+pub mod load_map;
 pub mod map;
 pub mod units;
 pub mod world;
-pub mod world_gen;
 
 use crate::prelude::*;
 
@@ -24,7 +24,8 @@ impl Plugin for GamePlugin {
                 .into(),
         );
 
-        app.add_enter_system(config::EngineState::LoadingWorld, world_gen::build_world)
+        app.add_enter_system(config::EngineState::LoadingWorld, load_map::load_map)
+            .add_exit_system(config::EngineState::LoadingWorld, setup)
             .add_loopless_state(InGameState::Paused)
             .add_plugin(InputManagerPlugin::<actions::WorldActions>::default())
             .add_plugin(InputManagerPlugin::<actions::SelectActions>::default())
@@ -41,6 +42,21 @@ impl Plugin for GamePlugin {
                 FixedTimestepStage::new(Duration::from_millis(1000)).with_stage(game_tick_stage),
             );
     }
+}
+
+fn setup(mut commands: Commands, world_query: Query<Entity, With<GameWorld>>) {
+    let world = world_query.single();
+    commands
+        .entity(world)
+        .insert(GameTime { tick: 0, day: 0 })
+        .insert_bundle(InputManagerBundle::<game::actions::WorldActions> {
+            action_state: ActionState::default(),
+            input_map: InputMap::default(),
+        })
+        .insert_bundle(TransformBundle {
+            local: Transform::identity(),
+            global: GlobalTransform::identity(),
+        });
 }
 
 fn game_tick(mut game_time_query: Query<&mut GameTime>) {
@@ -65,6 +81,9 @@ fn handle_world_actions(
         commands.insert_resource(NextState(InGameState::Running));
     }
 }
+
+#[derive(Component, Debug, Clone)]
+pub struct GameWorld {}
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GameTime {

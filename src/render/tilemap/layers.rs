@@ -28,18 +28,18 @@ pub enum TilemapLayer {
 impl TilemapLayer {
     pub fn new(
         child_builder: &mut ChildBuilder,
-        world: &game::world::GameWorld,
+        map: &game::map::Map,
         layer_type: &TilemapLayerType,
         z: f32,
     ) -> TilemapLayer {
         let size: Tilemap2dSize = match layer_type {
             TilemapLayerType::Background => Tilemap2dSize {
-                x: world.width + 2 + 10,
-                y: world.height + 2 + 10,
+                x: map.width + 2 + 10,
+                y: map.height + 2 + 10,
             },
             _ => Tilemap2dSize {
-                x: world.width,
-                y: world.height,
+                x: map.width,
+                y: map.height,
             },
         };
         let storage = Tile2dStorage::empty(size);
@@ -189,41 +189,41 @@ pub struct TilemapLayerManager {
 }
 
 impl TilemapLayerManager {
-    pub fn new(parent: &mut EntityCommands, world: &game::world::GameWorld) -> TilemapLayerManager {
+    pub fn new(parent: &mut EntityCommands, map: &game::map::Map) -> TilemapLayerManager {
         let mut tilemap_layers = Vec::new();
         parent.with_children(|builder| {
             tilemap_layers.extend(vec![
                 (
                     TilemapLayerType::Background,
-                    TilemapLayer::new(builder, world, &TilemapLayerType::Background, 50.),
+                    TilemapLayer::new(builder, map, &TilemapLayerType::Background, 50.),
                 ),
                 (
                     TilemapLayerType::Base,
-                    TilemapLayer::new(builder, world, &TilemapLayerType::Base, 1.),
+                    TilemapLayer::new(builder, map, &TilemapLayerType::Base, 1.),
                 ),
                 (
                     TilemapLayerType::Connectors,
-                    TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 2.),
+                    TilemapLayer::new(builder, map, &TilemapLayerType::Connectors, 2.),
                 ),
                 (
                     TilemapLayerType::Connectors,
-                    TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 3.),
+                    TilemapLayer::new(builder, map, &TilemapLayerType::Connectors, 3.),
                 ),
                 (
                     TilemapLayerType::Connectors,
-                    TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 4.),
+                    TilemapLayer::new(builder, map, &TilemapLayerType::Connectors, 4.),
                 ),
                 (
                     TilemapLayerType::Connectors,
-                    TilemapLayer::new(builder, world, &TilemapLayerType::Connectors, 5.),
+                    TilemapLayer::new(builder, map, &TilemapLayerType::Connectors, 5.),
                 ),
                 (
                     TilemapLayerType::Sites,
-                    TilemapLayer::new(builder, world, &TilemapLayerType::Sites, 7.),
+                    TilemapLayer::new(builder, map, &TilemapLayerType::Sites, 7.),
                 ),
                 (
                     TilemapLayerType::Borders,
-                    TilemapLayer::new(builder, world, &TilemapLayerType::Borders, 10.),
+                    TilemapLayer::new(builder, map, &TilemapLayerType::Borders, 10.),
                 ),
             ]);
         });

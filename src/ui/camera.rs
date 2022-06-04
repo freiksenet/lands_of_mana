@@ -38,7 +38,7 @@ pub fn camera_position_to_pixel_position(
     }
 }
 
-fn setup(mut commands: Commands, world_query: Query<Entity, With<game::world::GameWorld>>) {
+fn setup(mut commands: Commands, world_query: Query<Entity, With<game::GameWorld>>) {
     commands
         .entity(world_query.single())
         .with_children(|builder| {
@@ -53,13 +53,13 @@ fn setup(mut commands: Commands, world_query: Query<Entity, With<game::world::Ga
 // A simple camera system for moving and zooming the camera.
 fn camera_control(
     input_action_query: Query<&ActionState<ui::InputActions>>,
-    world_query: Query<&game::world::GameWorld>,
+    map_query: Query<&game::map::Map>,
     mut query: Query<(&mut Transform, &mut PixelProjection), With<Camera>>,
 ) {
-    let game_world = world_query.single();
+    let map = map_query.single();
     let border_size_pixels = 6 * 16;
-    let pixels_width = (game_world.width * 16 + border_size_pixels * 2) as f32;
-    let pixels_height = (game_world.height * 16 + border_size_pixels * 2) as f32;
+    let pixels_width = (map.width * 16 + border_size_pixels * 2) as f32;
+    let pixels_height = (map.height * 16 + border_size_pixels * 2) as f32;
 
     let input_action_state = input_action_query.single();
 

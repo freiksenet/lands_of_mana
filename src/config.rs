@@ -49,15 +49,15 @@ impl<Marker> OrderedSystemLabel<Marker> for UpdateStageLabel where
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash, SystemLabel)]
 pub enum UiSyncLabel {
-    Bindings, // sync resource bindings
-    Update,   // do ui update
+    Sync,   // sync resource bindings for gui and update graphics components if needed
+    Update, // do ui update
 }
 
 impl OrderedLabel for UiSyncLabel {
     fn after(&self) -> Option<UiSyncLabel> {
         match self {
-            UiSyncLabel::Bindings => None,
-            UiSyncLabel::Update => Some(UiSyncLabel::Bindings),
+            UiSyncLabel::Sync => None,
+            UiSyncLabel::Update => Some(UiSyncLabel::Sync),
         }
     }
 }
@@ -67,17 +67,17 @@ impl<Marker> OrderedSystemLabel<Marker> for UiSyncLabel where UiSyncLabel: AsSys
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash, SystemLabel)]
 
 pub enum GameTickStageLabel {
+    Tick,            // Perform game tick update
     UpdateEntities,  // clean up time based things and things that need to removed
     UpdateResources, // update state of resources based on tick, incl upkeep
-    Tick,            // Perform game tick update
 }
 
 impl OrderedLabel for GameTickStageLabel {
     fn after(&self) -> Option<GameTickStageLabel> {
         match self {
-            GameTickStageLabel::UpdateEntities => None,
+            GameTickStageLabel::Tick => None,
+            GameTickStageLabel::UpdateEntities => Some(GameTickStageLabel::Tick),
             GameTickStageLabel::UpdateResources => Some(GameTickStageLabel::UpdateEntities),
-            GameTickStageLabel::Tick => Some(GameTickStageLabel::UpdateResources),
         }
     }
 }

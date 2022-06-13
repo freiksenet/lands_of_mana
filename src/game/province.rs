@@ -72,16 +72,17 @@ impl CityBundle {
             .insert_bundle(CityBundle {
                 province: InProvince(province),
                 position,
-                city_type: city_stats.city_type.clone(),
+                city_type: city_stats.city_type,
                 player: super::world::OfPlayer(player_entity),
             })
             .with_children(|builder| {
                 for (resource, amount) in &city_stats.base_stockpile_prosumers {
                     builder
                         .spawn()
-                        .insert(super::world::StockpileResourceProsumer {
+                        .insert_bundle(super::world::StockpileResourceProsumerBundle {
+                            player: game::world::OfPlayer(player_entity),
                             resource: *resource,
-                            amount: *amount,
+                            prosumer: game::world::StockpileResourceProsumer(*amount),
                         })
                         .insert(super::world::OfPlayer(player_entity));
                 }
@@ -89,9 +90,10 @@ impl CityBundle {
                 for (resource, amount) in &city_stats.base_capacity_prosumers {
                     builder
                         .spawn()
-                        .insert(super::world::CapacityResourceProsumer {
+                        .insert_bundle(super::world::CapacityResourceProsumerBundle {
+                            player: game::world::OfPlayer(player_entity),
                             resource: *resource,
-                            amount: *amount,
+                            prosumer: game::world::CapacityResourceProsumer(*amount),
                         })
                         .insert(super::world::OfPlayer(player_entity));
                 }

@@ -10,12 +10,33 @@ use crate::prelude::{
 
 #[derive(Component, Debug, Clone)]
 pub struct UnitFigure {
-    pub health: u32,
+    pub index: usize,
+}
+
+#[derive(Component, Debug, Clone)]
+pub struct UnitFigureHealth(u32);
+
+#[derive(Bundle, Debug, Clone)]
+pub struct UnitFigureBundle {
+    pub figure: UnitFigure,
+    pub health: UnitFigureHealth,
+    pub unit_type: UnitType,
+}
+
+impl UnitFigureBundle {
+    pub fn new(unit_type: UnitType, index: usize, health: UnitFigureHealth) -> UnitFigureBundle {
+        UnitFigureBundle {
+            figure: UnitFigure { index },
+            health,
+            unit_type,
+        }
+    }
 }
 
 #[derive(Bundle, Debug, Clone)]
 pub struct UnitBundle {
     pub unit: Unit,
+    pub unit_type: UnitType,
     pub position: map::Position,
 }
 
@@ -23,40 +44,42 @@ impl UnitBundle {
     pub fn insert_full(
         entity: &mut EntityCommands,
         player_entity: Entity,
-        unit: Unit,
+        unit_type: UnitType,
         position: map::Position,
     ) -> Entity {
-        let unit_stats = unit.unit_type.get_unit_stats();
+        let unit_stats = unit_type.get_unit_stats();
         entity
-            .insert_bundle(UnitBundle { unit, position })
+            .insert_bundle(UnitBundle {
+                unit: Unit {},
+                unit_type,
+                position,
+            })
             .with_children(|unit| {
-                for _ in 0..unit_stats.max_figures {
-                    unit.spawn().insert(UnitFigure {
-                        health: unit_stats.max_health,
-                    });
+                for index in 0..unit_stats.max_figures {
+                    unit.spawn().insert_bundle(UnitFigureBundle::new(
+                        unit_type,
+                        index,
+                        UnitFigureHealth(unit_stats.max_health),
+                    ));
                 }
                 for (resource, amount) in &unit_stats.capacity_cost {
                     unit.spawn()
-                        .insert(world::CapacityResourceProsumer {
+                        .insert_bundle(world::CapacityResourceProsumerBundle {
+                            player: world::OfPlayer(player_entity),
                             resource: *resource,
-                            amount: *amount,
-                        })
-                        .insert(world::OfPlayer(player_entity));
+                            prosumer: world::CapacityResourceProsumer(*amount),
+                        });
                 }
             })
-            .insert(ui::Selectable {
-                ..Default::default()
-            })
+            .insert(ui::Selectable {})
             .id()
     }
 }
 
 #[derive(Component, Debug, Clone)]
-pub struct Unit {
-    pub unit_type: UnitType,
-}
+pub struct Unit {}
 
-#[derive(Clone, Copy, Debug, EnumString, EnumIter)]
+#[derive(Component, Clone, Copy, Debug, EnumString, EnumIter)]
 pub enum UnitType {
     Skeleton,
     DeathKnight,
@@ -65,7 +88,7 @@ pub enum UnitType {
 
 #[derive(Clone, Debug)]
 pub struct UnitStats {
-    pub max_figures: u32,
+    pub max_figures: usize,
     pub max_health: u32,
     pub cost: HashMap<world::StockpileResourceType, f32>,
     pub capacity_cost: HashMap<world::CapacityResourceType, i32>,

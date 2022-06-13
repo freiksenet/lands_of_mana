@@ -12,16 +12,16 @@ impl Map {
     /// Get world midpoint in pixels
     pub fn get_pixel_midpoint(&self) -> Vec2 {
         Vec2::new(
-            (self.width * 16) as f32 / 2. - 8.,
-            (self.height * 16) as f32 / 2. - 8.,
+            (self.width * 16) as f32 / 2.,
+            (self.height * 16) as f32 / 2.,
         )
     }
 
     pub fn pixel_position_to_position(&self, pixel_position: Vec2) -> game::map::Position {
         let corner_position = pixel_position + self.get_pixel_midpoint();
         game::map::Position {
-            x: ((corner_position.x + 8.) / 16.0).floor() as u32,
-            y: ((corner_position.y + 8.) / 16.0).floor() as u32,
+            x: (corner_position.x / 16.0).floor() as u32,
+            y: (corner_position.y / 16.0).floor() as u32,
         }
     }
 

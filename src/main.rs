@@ -3,6 +3,7 @@
 #![allow(clippy::type_complexity)]
 #![feature(allocator_api)]
 #![feature(trait_alias)]
+#![feature(map_try_insert)]
 
 pub mod assets;
 pub mod config;

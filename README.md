@@ -10,6 +10,7 @@
 - [ ] Make GUI a plugin, unite all bindings in a system
 - [ ] Refactor structs that are single value to just be single value
 - [ ] Default values for some sentinels, group into bundlesn better
+- [ ] Kayak UI doesn't intercept clicks correctly
 
 ## Project plan
 

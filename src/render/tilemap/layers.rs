@@ -11,7 +11,7 @@ use bevy_ecs_tilemap::{
 };
 use strum_macros::{EnumDiscriminants, EnumIter};
 
-use super::{assets, game};
+use crate::prelude::{render::z_level::ZLevel, *};
 
 #[derive(Debug, Clone, EnumDiscriminants)]
 #[strum_discriminants(derive(EnumIter))]
@@ -195,35 +195,65 @@ impl TilemapLayerManager {
             tilemap_layers.extend(vec![
                 (
                     TilemapLayerType::Background,
-                    TilemapLayer::new(builder, map, &TilemapLayerType::Background, 50.),
+                    TilemapLayer::new(
+                        builder,
+                        map,
+                        &TilemapLayerType::Background,
+                        ZLevel::Background.into(),
+                    ),
                 ),
                 (
                     TilemapLayerType::Base,
-                    TilemapLayer::new(builder, map, &TilemapLayerType::Base, 1.),
+                    TilemapLayer::new(builder, map, &TilemapLayerType::Base, ZLevel::Base.into()),
                 ),
                 (
                     TilemapLayerType::Connectors,
-                    TilemapLayer::new(builder, map, &TilemapLayerType::Connectors, 2.),
+                    TilemapLayer::new(
+                        builder,
+                        map,
+                        &TilemapLayerType::Connectors,
+                        ZLevel::Connectors1.into(),
+                    ),
                 ),
                 (
                     TilemapLayerType::Connectors,
-                    TilemapLayer::new(builder, map, &TilemapLayerType::Connectors, 3.),
+                    TilemapLayer::new(
+                        builder,
+                        map,
+                        &TilemapLayerType::Connectors,
+                        ZLevel::Connectors2.into(),
+                    ),
                 ),
                 (
                     TilemapLayerType::Connectors,
-                    TilemapLayer::new(builder, map, &TilemapLayerType::Connectors, 4.),
+                    TilemapLayer::new(
+                        builder,
+                        map,
+                        &TilemapLayerType::Connectors,
+                        ZLevel::Connectors3.into(),
+                    ),
                 ),
                 (
                     TilemapLayerType::Connectors,
-                    TilemapLayer::new(builder, map, &TilemapLayerType::Connectors, 5.),
+                    TilemapLayer::new(
+                        builder,
+                        map,
+                        &TilemapLayerType::Connectors,
+                        ZLevel::Connectors4.into(),
+                    ),
                 ),
                 (
                     TilemapLayerType::Sites,
-                    TilemapLayer::new(builder, map, &TilemapLayerType::Sites, 7.),
+                    TilemapLayer::new(builder, map, &TilemapLayerType::Sites, ZLevel::Sites.into()),
                 ),
                 (
                     TilemapLayerType::Borders,
-                    TilemapLayer::new(builder, map, &TilemapLayerType::Borders, 10.),
+                    TilemapLayer::new(
+                        builder,
+                        map,
+                        &TilemapLayerType::Borders,
+                        ZLevel::Borders.into(),
+                    ),
                 ),
             ]);
         });

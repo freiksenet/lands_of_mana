@@ -1,4 +1,5 @@
 use bevy_pixel_camera::PixelProjection;
+use kayak_ui::bevy::BevyContext;
 use leafwing_input_manager::prelude::*;
 
 use crate::prelude::*;
@@ -71,15 +72,21 @@ fn input_to_game_actions(
 }
 
 fn interact(
+    mut commands: Commands,
     windows: Res<Windows>,
+    kayak_context_option: Option<Res<BevyContext>>,
     camera_transform_query: Query<(&Camera, &Transform), With<PixelProjection>>,
     map_query: Query<&game::map::Map>,
     input_action_query: Query<&ActionState<InputActions>>,
-    mut selectable_query: Query<(&game::map::Position, &mut Selectable)>,
+    selectable_query: Query<(Entity, &game::map::Position), With<Selectable>>,
 ) {
     let input_action_state = input_action_query.single();
+    let ui_contains_cursor = match kayak_context_option {
+        Some(kayak_context) => kayak_context.contains_cursor(),
+        None => false,
+    };
 
-    if input_action_state.just_pressed(InputActions::Interact) {
+    if input_action_state.just_pressed(InputActions::Interact) && !ui_contains_cursor {
         let window = windows.get_primary().unwrap();
 
         let (camera, camera_transform) = camera_transform_query.single();
@@ -89,11 +96,12 @@ fn interact(
             let map = map_query.single();
             let cursor_position = map.pixel_position_to_position(pixel_position);
 
-            for (position, mut selectable) in selectable_query.iter_mut() {
+            for (entity, position) in selectable_query.iter() {
+                println!("{:?}", (position, &cursor_position));
                 if &cursor_position == position {
-                    selectable.is_selected = true;
-                } else if selectable.is_selected {
-                    selectable.is_selected = false;
+                    commands.entity(entity).insert(Selected {});
+                } else {
+                    commands.entity(entity).remove::<Selected>();
                 }
             }
         }
@@ -118,7 +126,12 @@ pub enum InputActions {
 }
 
 #[derive(Component, Debug, Clone, Default)]
+pub struct Selectable {}
+
+#[derive(Component, Debug, Clone, Default)]
 #[component(storage = "SparseSet")]
-pub struct Selectable {
-    pub is_selected: bool,
-}
+pub struct Selected {}
+
+#[derive(Component, Debug, Clone, Default)]
+#[component(storage = "SparseSet")]
+pub struct Selecting {}

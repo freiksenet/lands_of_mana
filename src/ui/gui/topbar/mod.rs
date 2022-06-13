@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_kayak_ui::ImageManager;
 use kayak_core::{
-    styles::{Edge, LayoutType, PositionType},
+    styles::{Edge, LayoutType},
     Binding, Bound, Color,
 };
 use kayak_ui::{
@@ -34,10 +34,14 @@ pub fn TopBar() {
         )
     };
 
-    let game_time_binding = context
-        .query_world::<Res<Binding<game::GameTime>>, _, _>(move |game_time| game_time.clone());
-    context.bind(&game_time_binding);
-    let game_time = game_time_binding.get();
+    let game_tick_binding = context
+        .query_world::<Res<Binding<game::GameTick>>, _, _>(move |game_tick| game_tick.clone());
+    context.bind(&game_tick_binding);
+    let game::GameTick(game_tick) = game_tick_binding.get();
+    let game_day_binding =
+        context.query_world::<Res<Binding<game::GameDay>>, _, _>(move |game_day| game_day.clone());
+    context.bind(&game_day_binding);
+    let game::GameDay(game_day) = game_day_binding.get();
 
     let game_state_binding = context
         .query_world::<Res<Binding<game::InGameState>>, _, _>(move |game_state| game_state.clone());
@@ -122,10 +126,10 @@ pub fn TopBar() {
           border={Edge::all(8.0)}>
           <Element styles={Some(tick_counter_container_style)}>
             <Text size={15.0}
-              content={format!("Day\u{00A0}{:04}", game_time.day + 1)}
+              content={format!("Day\u{00A0}{:04}", game_day + 1)}
               styles={Some(tick_counter_style)} />
             <Text size={15.0}
-              content={format!("Tick\u{00A0}{:02}", game_time.tick + 1)}
+              content={format!("Tick\u{00A0}{:02}", game_tick + 1)}
               styles={Some(tick_counter_style)} />
           </Element>
           <toolbar::Toolbar

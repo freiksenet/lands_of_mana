@@ -1,5 +1,5 @@
 use kayak_ui::{
-    bevy::{BevyContext, FontMapping, WindowSize},
+    bevy::{BevyContext, FontMapping},
     core::{
         render,
         render_command::RenderCommand,
@@ -7,7 +7,7 @@ use kayak_ui::{
         styles::{Style, StyleProp, Units},
         widget, Binding, Bound, Children, Index, WidgetProps,
     },
-    widgets::{Clip, Element},
+    widgets::Element,
 };
 
 use crate::prelude::*;

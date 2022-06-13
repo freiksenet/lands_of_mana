@@ -57,7 +57,7 @@ pub fn StockpileResource(props: StockpileResourceProps) {
         let cell = world.cell();
         let icon_assets = cell.get_resource::<assets::IconAssets>().unwrap();
         let mut image_manager = cell.get_resource_mut::<ImageManager>().unwrap();
-        image_manager.get(&match (props.resource_type) {
+        image_manager.get(&match props.resource_type {
             game::world::StockpileResourceType::Gold => icon_assets.res_gold.clone(),
             game::world::StockpileResourceType::Wood => icon_assets.res_wood.clone(),
         })
@@ -79,10 +79,11 @@ pub fn StockpileResource(props: StockpileResourceProps) {
     let icon_style = Style {
         width: StyleProp::Value(Units::Pixels(14.)),
         height: StyleProp::Value(Units::Pixels(14.)),
+
         ..Style::default()
     };
 
-    let income_text = if (props.resource.income >= 0.) {
+    let income_text = if props.resource.income >= 0. {
         format!("+{:}", props.resource.income)
     } else {
         format!("-{:}", props.resource.income.abs())
@@ -115,7 +116,7 @@ pub fn CapacityResource(props: CapacityResourceProps) {
         let cell = world.cell();
         let icon_assets = cell.get_resource::<assets::IconAssets>().unwrap();
         let mut image_manager = cell.get_resource_mut::<ImageManager>().unwrap();
-        image_manager.get(&match (props.resource_type) {
+        image_manager.get(&match props.resource_type {
             game::world::CapacityResourceType::Sun => icon_assets.mana_sun.clone(),
             game::world::CapacityResourceType::Arcana => icon_assets.mana_arcana.clone(),
             game::world::CapacityResourceType::Death => icon_assets.mana_death.clone(),

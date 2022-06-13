@@ -38,13 +38,14 @@ pub struct PlayerResources {
 pub fn setup_binding_resources(
     mut commands: Commands,
     windows: Res<Windows>,
-    game_time_query: Query<&game::GameTime>,
+    game_time_query: Query<(&game::GameTick, &game::GameDay)>,
     game_state: Res<CurrentState<game::InGameState>>,
 ) {
-    let game_time = game_time_query.single();
+    let (game_tick, game_day) = game_time_query.single();
     let window = windows.get_primary().unwrap();
     commands.insert_resource(bind(PixelWindow(window.width(), window.height())));
-    commands.insert_resource(bind(*game_time));
+    commands.insert_resource(bind(*game_tick));
+    commands.insert_resource(bind(*game_day));
     commands.insert_resource(bind(game_state.0));
     commands.insert_resource(bind(PlayerResources {
         stockpile_resources: vec![
@@ -91,9 +92,10 @@ pub fn setup_binding_resources(
 pub fn bindings_system_set() -> SystemSet {
     ConditionSet::new()
         .run_in_state(config::EngineState::InGame)
-        .label_and_after(config::UiSyncLabel::Bindings)
+        .label_and_after(config::UiSyncLabel::Sync)
         .with_system(bind_pixel_window)
-        .with_system(bind_game_time)
+        .with_system(bind_game_tick)
+        .with_system(bind_game_day)
         .with_system(bind_game_state)
         .with_system(bind_current_player_resources)
         .into()
@@ -110,14 +112,23 @@ fn bind_pixel_window(
         window_binding.set(PixelWindow(projection.right, projection.bottom));
     }
 }
-
-fn bind_game_time(
-    game_time_binding: ResMut<Binding<game::GameTime>>,
-    game_time_query: Query<&game::GameTime, Changed<game::GameTime>>,
+fn bind_game_day(
+    game_day_binding: ResMut<Binding<game::GameDay>>,
+    game_day_query: Query<&game::GameDay, Changed<game::GameDay>>,
 ) {
-    let game_time_result = game_time_query.get_single();
-    if let Ok(game_time) = game_time_result {
-        game_time_binding.set(*game_time);
+    let game_day_result = game_day_query.get_single();
+    if let Ok(game_day) = game_day_result {
+        game_day_binding.set(*game_day);
+    }
+}
+
+fn bind_game_tick(
+    game_tick_binding: ResMut<Binding<game::GameTick>>,
+    game_tick_query: Query<&game::GameTick, Changed<game::GameTick>>,
+) {
+    let game_tick_result = game_tick_query.get_single();
+    if let Ok(game_tick) = game_tick_result {
+        game_tick_binding.set(*game_tick);
     }
 }
 
@@ -138,9 +149,15 @@ fn bind_current_player_resources(
         &game::world::StockpileResourceType,
         &game::world::StockpileResourceAmount,
     )>,
-    stockile_resources_prosumer_query: Query<&game::world::StockpileResourceProsumer>,
+    stockile_resources_prosumer_query: Query<(
+        &game::world::StockpileResourceType,
+        &game::world::StockpileResourceProsumer,
+    )>,
     capacity_resources_query: Query<&game::world::CapacityResourceType>,
-    capacity_resources_prosumer_query: Query<&game::world::CapacityResourceProsumer>,
+    capacity_resources_prosumer_query: Query<(
+        &game::world::CapacityResourceType,
+        &game::world::CapacityResourceProsumer,
+    )>,
 ) {
     let mut player_resources = player_resources_binding.get();
 
@@ -156,7 +173,7 @@ fn bind_current_player_resources(
             });
     }
 
-    for game::world::StockpileResourceProsumer { resource, amount } in
+    for (resource, game::world::StockpileResourceProsumer(amount)) in
         stockile_resources_prosumer_query.iter()
     {
         player_resources
@@ -177,7 +194,7 @@ fn bind_current_player_resources(
             });
     }
 
-    for game::world::CapacityResourceProsumer { resource, amount } in
+    for (resource, game::world::CapacityResourceProsumer(amount)) in
         capacity_resources_prosumer_query.iter()
     {
         let amount_value = *amount;

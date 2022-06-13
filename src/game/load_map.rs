@@ -1,18 +1,21 @@
-use std::{collections::HashMap, path::Path, str::FromStr};
+use std::{path::Path, str::FromStr};
 
 use euclid::point2;
 use fart_2d_geom::ConvexPolygon;
 use num_traits::FromPrimitive;
 use strum_macros::{Display, EnumIter, EnumString};
 use tiled::{
-    Chunk, FiniteTileLayer, InfiniteTileLayer, LayerType, Loader, Map, ObjectLayer, ObjectShape,
-    PropertyValue, TileLayer,
+    FiniteTileLayer, LayerType, Loader, Map, ObjectLayer, ObjectShape, PropertyValue, TileLayer,
 };
 
 use super::province::CityBundle;
 use crate::prelude::*;
 
-pub fn load_map(mut commands: Commands) {
+pub fn load_map(
+    mut commands: Commands,
+    world_query: Query<Entity, With<game::GameWorld>>,
+    player_query: Query<Entity, With<game::world::Viewer>>,
+) {
     let mut loader = Loader::new();
     let map = loader
         .load_tmx_map(Path::new("./maps/world_of_magic_export.tmx"))
@@ -22,42 +25,12 @@ pub fn load_map(mut commands: Commands) {
     let width = base_layer.width();
     let height = base_layer.height();
 
-    let world_entity = commands
-        .spawn_bundle((game::GameWorld {}, game::map::Map { width, height }))
-        .id();
+    let world_entity = world_query.single();
+    let player_entity = player_query.single();
 
-    let player = commands
-        .spawn_bundle(game::world::PlayerBundle {
-            color: game::world::PlayerColor(Color::RED),
-            name: game::world::PlayerName("PLAYER".to_string()),
-        })
-        .with_children(|builder| {
-            builder.spawn_bundle(game::world::PlayerStockpileBundle {
-                resource: game::world::StockpileResourceType::Gold,
-                amount: game::world::StockpileResourceAmount(100.),
-            });
-            builder.spawn_bundle(game::world::PlayerStockpileBundle {
-                resource: game::world::StockpileResourceType::Wood,
-                amount: game::world::StockpileResourceAmount(50.),
-            });
-            builder.spawn_bundle(game::world::PlayerCapacityBundle {
-                resource: game::world::CapacityResourceType::Sun,
-            });
-            builder.spawn_bundle(game::world::PlayerCapacityBundle {
-                resource: game::world::CapacityResourceType::Arcana,
-            });
-            builder.spawn_bundle(game::world::PlayerCapacityBundle {
-                resource: game::world::CapacityResourceType::Death,
-            });
-            builder.spawn_bundle(game::world::PlayerCapacityBundle {
-                resource: game::world::CapacityResourceType::Chaos,
-            });
-            builder.spawn_bundle(game::world::PlayerCapacityBundle {
-                resource: game::world::CapacityResourceType::Nature,
-            });
-        })
-        .id();
-    commands.entity(world_entity).add_child(player);
+    commands
+        .entity(world_entity)
+        .insert(game::map::Map { width, height });
 
     let mut province_polygons = Vec::new();
     let province_layer = get_object_layer(&map, ObjectLayerName::Provinces);
@@ -122,7 +95,7 @@ pub fn load_map(mut commands: Commands) {
                 let city_type = game::province::CityType::from_str(city_type_str).unwrap();
                 let city = CityBundle::new_empty_city(
                     &mut commands.spawn(),
-                    player,
+                    player_entity,
                     city_type.get_city_stats(),
                     *province_entity,
                     game::map::Position { x, y },

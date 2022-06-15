@@ -13,7 +13,6 @@ impl Plugin for AssetLoadingPlugin {
             .with_collection::<UiAssets>()
             .with_collection::<FontAssets>()
             .with_collection::<IconAssets>()
-            // .init_resource::<CombinedTileTexture>()
             .build(app);
     }
 }
@@ -63,6 +62,14 @@ pub struct UiAssets {
 
     #[asset(path = "ui/bg/ui_window_paper_top.png")]
     pub window_paper_top: Handle<Image>,
+
+    #[asset(texture_atlas(tile_size_x = 8., tile_size_y = 8., columns = 8, rows = 10))]
+    #[asset(path = "ui/selectors.png")]
+    pub selectors: Handle<TextureAtlas>,
+
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 4, rows = 16))]
+    #[asset(path = "ui/directions.png")]
+    pub directions: Handle<TextureAtlas>,
 }
 
 #[derive(AssetCollection)]

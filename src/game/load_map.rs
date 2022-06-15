@@ -14,7 +14,7 @@ use crate::prelude::*;
 pub fn load_map(
     mut commands: Commands,
     world_query: Query<Entity, With<game::GameWorld>>,
-    player_query: Query<Entity, With<game::world::Viewer>>,
+    player_query: Query<Entity, With<game::world::Player>>,
 ) {
     let mut loader = Loader::new();
     let map = loader

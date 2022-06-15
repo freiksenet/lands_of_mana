@@ -17,12 +17,12 @@ pub fn setup_ui(
     mut font_mapping: ResMut<FontMapping>,
     font_assets: Res<assets::FontAssets>,
 ) {
-    commands.spawn_bundle(ui::gui::camera::UICameraBundle::new());
+    commands.spawn_bundle(gui::camera::UICameraBundle::new());
     font_mapping.set_default(font_assets.compass.clone());
     let context = BevyContext::new(|context| {
         render! {
             <App>
-              <ui::gui::topbar::TopBar />
+              <gui::topbar::TopBar />
             </App>
         }
     });
@@ -41,7 +41,7 @@ pub struct AppProps {
 #[widget]
 pub fn App(props: AppProps) {
     let window_size = if let Ok(world) = context.get_global::<bevy::prelude::World>() {
-        if let Some(window_size) = world.get_resource::<Binding<ui::gui::bindings::PixelWindow>>() {
+        if let Some(window_size) = world.get_resource::<Binding<gui::bindings::PixelWindow>>() {
             window_size.clone()
         } else {
             return;

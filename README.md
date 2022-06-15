@@ -11,6 +11,7 @@
 - [ ] Refactor structs that are single value to just be single value
 - [ ] Default values for some sentinels, group into bundlesn better
 - [ ] Kayak UI doesn't intercept clicks correctly
+- [ ] Fix .0 weirdness for selection target
 
 ## Project plan
 

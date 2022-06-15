@@ -43,7 +43,6 @@ impl Plugin for GamePlugin {
             .add_exit_system(config::EngineState::LoadingWorld, setup_actions)
             .add_loopless_state(InGameState::Paused)
             .add_plugin(InputManagerPlugin::<actions::WorldActions>::default())
-            .add_plugin(InputManagerPlugin::<actions::SelectActions>::default())
             .add_system_set(
                 ConditionSet::new()
                     .label_and_after(config::UpdateStageLabel::GameActions)
@@ -112,10 +111,12 @@ fn setup_game_world(mut commands: Commands) {
                         &mut unit,
                         player_entity,
                         units::UnitType::Skeleton,
-                        Position { x: 0, y: 0 },
+                        Position { x: 64, y: 40 },
                     );
                 })
-                .insert(world::Viewer {});
+                .insert_bundle(ui::ViewerBundle {
+                    ..Default::default()
+                });
         });
 }
 

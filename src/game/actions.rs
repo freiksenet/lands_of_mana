@@ -5,10 +5,3 @@ pub enum WorldActions {
     Pause,
     Resume,
 }
-
-#[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug)]
-pub enum SelectActions {
-    Select,
-    Deselect,
-    HoverSelectable,
-}

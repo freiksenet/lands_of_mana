@@ -15,7 +15,7 @@ pub struct RenderPlugin {}
 impl Plugin for RenderPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(FramepacePlugin {
-            framerate_limit: FramerateLimit::Manual(30),
+            framerate_limit: FramerateLimit::Auto,
             ..Default::default()
         })
         .add_stage(config::Stage::UiSync, SystemStage::parallel())
@@ -25,15 +25,7 @@ impl Plugin for RenderPlugin {
         .add_plugin(units::UnitsRenderPlugin {})
         .add_plugin(animations::AnimationsRenderPlugin {})
         .add_enter_system(config::EngineState::LoadingGraphics, tilemap::setup)
-        .add_system(proceed_to_ready_state.run_in_state(config::EngineState::LoadingGraphics))
-        .add_system_set_to_stage(
-            config::Stage::UiSync,
-            ConditionSet::new()
-                .label_and_after(config::UiSyncLabel::Sync)
-                .run_in_state(config::EngineState::InGame)
-                .with_system(units::selected)
-                .into(),
-        );
+        .add_system(proceed_to_ready_state.run_in_state(config::EngineState::LoadingGraphics));
     }
 }
 

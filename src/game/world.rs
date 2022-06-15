@@ -1,10 +1,6 @@
 use strum_macros::{EnumIter, EnumString};
 
 use crate::prelude::*;
-
-#[derive(Component, Debug, Clone)]
-pub struct Viewer {}
-
 #[derive(Component, Debug, Clone, Default)]
 pub struct Player {}
 

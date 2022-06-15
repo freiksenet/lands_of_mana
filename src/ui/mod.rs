@@ -1,3 +1,4 @@
+use bevy::{core::Stopwatch, utils::HashSet};
 use bevy_pixel_camera::PixelProjection;
 use kayak_ui::bevy::BevyContext;
 use leafwing_input_manager::prelude::*;
@@ -5,7 +6,6 @@ use leafwing_input_manager::prelude::*;
 use crate::prelude::*;
 
 mod camera;
-mod gui;
 pub struct InputPlugin {}
 
 impl Plugin for InputPlugin {
@@ -22,13 +22,12 @@ impl Plugin for InputPlugin {
                     .with_system(interact)
                     .into(),
             )
-            .add_plugin(camera::CameraPlugin {})
-            .add_plugin(gui::GuiPlugin {});
+            .add_plugin(camera::CameraPlugin {});
     }
 }
 
-fn setup(mut commands: Commands, world_query: Query<Entity, With<game::GameWorld>>) {
-    let world_entity = world_query.single();
+fn setup(mut commands: Commands, viewer_query: Query<Entity, With<Viewer>>) {
+    let viewer_entity = viewer_query.single();
     let mut input_map = InputMap::new([
         // pause / resume
         (InputActions::TogglePause, KeyCode::Space),
@@ -39,9 +38,11 @@ fn setup(mut commands: Commands, world_query: Query<Entity, With<game::GameWorld
         (InputActions::CameraZoomIn, KeyCode::Z),
         (InputActions::CameraZoomOut, KeyCode::X),
     ]);
-    input_map.insert(InputActions::Interact, MouseButton::Left);
+    input_map.insert(InputActions::Select, MouseButton::Left);
+    input_map.insert(InputActions::Contextual, MouseButton::Right);
+
     commands
-        .entity(world_entity)
+        .entity(viewer_entity)
         .insert_bundle(InputManagerBundle::<InputActions> {
             action_state: ActionState::default(),
             input_map,
@@ -72,12 +73,19 @@ fn input_to_game_actions(
 }
 
 fn interact(
-    mut commands: Commands,
     windows: Res<Windows>,
     kayak_context_option: Option<Res<BevyContext>>,
     camera_transform_query: Query<(&Camera, &Transform), With<PixelProjection>>,
     map_query: Query<&game::map::Map>,
     input_action_query: Query<&ActionState<InputActions>>,
+    mut viewer_query: Query<
+        (
+            &mut Selection,
+            &mut CursorTargetTime,
+            &mut CursorSelectionTarget,
+        ),
+        With<Viewer>,
+    >,
     selectable_query: Query<(Entity, &game::map::Position), With<Selectable>>,
 ) {
     let input_action_state = input_action_query.single();
@@ -86,7 +94,7 @@ fn interact(
         None => false,
     };
 
-    if input_action_state.just_pressed(InputActions::Interact) && !ui_contains_cursor {
+    if (!ui_contains_cursor) {
         let window = windows.get_primary().unwrap();
 
         let (camera, camera_transform) = camera_transform_query.single();
@@ -95,18 +103,49 @@ fn interact(
         {
             let map = map_query.single();
             let cursor_position = map.pixel_position_to_position(pixel_position);
+            let (mut selection, mut cursor_target_time, mut cursor_selection_target) =
+                viewer_query.single_mut();
+
+            let mut trying_to_select: Option<bool> =
+                if input_action_state.just_released(InputActions::Select) {
+                    Some(false)
+                } else {
+                    None
+                };
+            let mut not_hovering = true;
 
             for (entity, position) in selectable_query.iter() {
-                println!("{:?}", (position, &cursor_position));
                 if &cursor_position == position {
-                    commands.entity(entity).insert(Selected {});
-                } else {
-                    commands.entity(entity).remove::<Selected>();
+                    not_hovering = false;
+                    if !cursor_selection_target.0.is_selected(entity) {
+                        cursor_selection_target.0.select_unit(entity);
+                        cursor_target_time.0.reset();
+                        cursor_target_time.0.unpause();
+                    }
+
+                    if trying_to_select.is_some() && !selection.is_selected_alone(entity) {
+                        selection.select_unit(entity);
+                        trying_to_select = Some(true);
+                    }
                 }
+            }
+            match trying_to_select {
+                Some(have_selected) if !have_selected => {
+                    selection.clear();
+                }
+                _ => {}
+            }
+            if not_hovering && !cursor_selection_target.0.is_empty() {
+                cursor_selection_target.0.clear();
+                cursor_target_time.0.reset();
+                cursor_target_time.0.pause();
             }
         }
     }
 }
+
+// we go through all entities that can be hovered in current context (how do we do that actually?)
+// if they are hoverable, we add that to hover
 
 #[derive(Actionlike, PartialEq, Eq, Clone, Copy, Hash, Debug)]
 pub enum InputActions {
@@ -121,17 +160,131 @@ pub enum InputActions {
     CameraZoomIn,
     CameraZoomOut,
 
-    // Generic left click interact
-    Interact,
+    // Stuff that is left click, usually "select something"
+    Select,
+    // Stuff that is right click, usually "do something with current context"
+    Contextual,
 }
 
 #[derive(Component, Debug, Clone, Default)]
 pub struct Selectable {}
 
 #[derive(Component, Debug, Clone, Default)]
-#[component(storage = "SparseSet")]
-pub struct Selected {}
+pub enum SelectionInteractionState {
+    #[default]
+    None,
+    Selecting,
+    Selected,
+}
 
 #[derive(Component, Debug, Clone, Default)]
-#[component(storage = "SparseSet")]
-pub struct Selecting {}
+pub struct Selection(SelectionType);
+
+#[derive(Debug, Clone, Default)]
+pub enum SelectionType {
+    #[default]
+    None,
+    Unit(Entity),
+    Units(HashSet<Entity>),
+}
+
+impl Selection {
+    pub fn is_empty(&self) -> bool {
+        matches!(self.0, SelectionType::None)
+    }
+
+    pub fn is_selected(&self, entity: Entity) -> bool {
+        match &self.0 {
+            SelectionType::Unit(selected_entity) if *selected_entity == entity => true,
+            SelectionType::Units(selected_entities) if selected_entities.contains(&entity) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_selected_alone(&self, entity: Entity) -> bool {
+        matches!(self.0, SelectionType::Unit(selected_entity) if selected_entity == entity)
+    }
+
+    pub fn clear(&mut self) {
+        self.0 = SelectionType::None;
+    }
+
+    pub fn select_unit(&mut self, entity: Entity) {
+        self.0 = SelectionType::Unit(entity);
+    }
+
+    pub fn select_units(&mut self, mut entities: Vec<Entity>) {
+        self.0 = SelectionType::Units(HashSet::from_iter(entities.drain(..)));
+    }
+
+    // add unit to a valid unit selection, ignores otherwise
+    pub fn add_unit_to_selection(&mut self, entity: Entity) {
+        match &self.0 {
+            SelectionType::Units(selected_entities) => {
+                let mut new_selected_entities = selected_entities.clone();
+                new_selected_entities.insert(entity);
+                self.0 = SelectionType::Units(new_selected_entities);
+            }
+            SelectionType::Unit(selected_entity) if *selected_entity != entity => {
+                let mut selected_entities = HashSet::new();
+                selected_entities.insert(*selected_entity);
+                selected_entities.insert(entity);
+                self.0 = SelectionType::Units(selected_entities);
+            }
+            SelectionType::None => {
+                self.0 = SelectionType::Unit(entity);
+            }
+            _ => {}
+        }
+    }
+
+    // remove unit from a valid unit selection, ignores otherwise
+    pub fn remove_unit_from_selection(&mut self, entity: Entity) {
+        match &self.0 {
+            SelectionType::Units(selected_entities) => {
+                let mut new_selected_entities = selected_entities.clone();
+                new_selected_entities.remove(&entity);
+                if (new_selected_entities.len() <= 1) {
+                    self.0 = SelectionType::Unit(*selected_entities.iter().next().unwrap());
+                } else {
+                    self.0 = SelectionType::Units(new_selected_entities);
+                }
+            }
+            SelectionType::Unit(selected_entity) if *selected_entity == entity => {
+                self.0 = SelectionType::None;
+            }
+            _ => {}
+        }
+    }
+}
+
+#[derive(Component, Debug, Clone, Default)]
+pub struct CursorTargetTime(pub Stopwatch);
+
+#[derive(Component, Debug, Clone, Default)]
+pub struct CursorSelectionTarget(pub Selection);
+
+#[derive(Bundle, Debug, Clone, Default)]
+pub struct CursorTargetBundle {
+    pub target_time: CursorTargetTime,
+    pub selection_target: CursorSelectionTarget,
+    // pub interaction_target - what will happen if you right click
+    // pub tooltip_target - what tooltip to show for this
+}
+
+#[derive(Bundle, Debug, Clone, Default)]
+pub struct SelectableBundle {
+    selectable: Selectable,
+    interaction_state: SelectionInteractionState,
+}
+
+#[derive(Component, Debug, Clone, Default)]
+pub struct Viewer {}
+
+#[derive(Bundle, Debug, Clone, Default)]
+pub struct ViewerBundle {
+    pub viewer: Viewer,
+    pub selection: Selection,
+    #[bundle]
+    pub cursor_target: CursorTargetBundle,
+}

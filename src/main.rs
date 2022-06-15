@@ -8,6 +8,7 @@
 pub mod assets;
 pub mod config;
 pub mod game;
+pub mod gui;
 pub mod prelude;
 pub mod render;
 pub mod ui;
@@ -35,5 +36,6 @@ fn main() {
         .add_plugin(game::GamePlugin {})
         .add_plugin(render::RenderPlugin {})
         .add_plugin(ui::InputPlugin {})
+        .add_plugin(gui::GuiPlugin {})
         .run();
 }

@@ -104,8 +104,8 @@ pub fn bindings_system_set() -> SystemSet {
 fn bind_pixel_window(
     window_binding: ResMut<Binding<PixelWindow>>,
     projection_query: Query<
-        &ui::gui::camera::UIOrthographicProjection,
-        Changed<ui::gui::camera::UIOrthographicProjection>,
+        &gui::camera::UIOrthographicProjection,
+        Changed<gui::camera::UIOrthographicProjection>,
     >,
 ) {
     if let Ok(projection) = projection_query.get_single() {

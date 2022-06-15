@@ -20,7 +20,7 @@ pub fn Resources() {
     };
 
     let resources_binding = context
-        .query_world::<Res<Binding<ui::gui::bindings::PlayerResources>>, _, _>(
+        .query_world::<Res<Binding<gui::bindings::PlayerResources>>, _, _>(
             move |player_resources| player_resources.clone(),
         );
     context.bind(&resources_binding);
@@ -47,7 +47,7 @@ pub struct StockpileResourceProps {
     #[prop_field]
     resource_type: game::world::StockpileResourceType,
     #[prop_field]
-    resource: ui::gui::bindings::PlayerStockpileResource,
+    resource: gui::bindings::PlayerStockpileResource,
 }
 
 #[widget]
@@ -106,7 +106,7 @@ pub struct CapacityResourceProps {
     #[prop_field]
     resource_type: game::world::CapacityResourceType,
     #[prop_field]
-    resource: ui::gui::bindings::PlayerCapacityResource,
+    resource: gui::bindings::PlayerCapacityResource,
 }
 
 #[widget]

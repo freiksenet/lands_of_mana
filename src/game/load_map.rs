@@ -115,10 +115,7 @@ fn get_tile_layer(map: &Map, layer: TileLayerName) -> FiniteTileLayer {
         .unwrap()
         .layer_type()
     {
-        LayerType::TileLayer(layer) => match layer {
-            TileLayer::Finite(layer) => layer,
-            _ => panic!("Wrong layer type"),
-        },
+        LayerType::TileLayer(TileLayer::Finite(layer)) => layer,
         _ => panic!("Wrong layer type"),
     }
 }

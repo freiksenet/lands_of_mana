@@ -1,6 +1,8 @@
 use std::time::Duration;
 
-use bevy::{ecs::query::QueryItem, render::view::VisibleEntities};
+use bevy::ecs::query::QueryItem;
+use bevy_pixel_camera::PixelProjection;
+use bevy_prototype_lyon::{entity::ShapeBundle, prelude::*, shapes::Polygon};
 use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, EnumString};
 
@@ -10,34 +12,40 @@ use crate::{
         units::{Unit, UnitFigure, UnitType},
     },
     prelude::*,
-    render::{animations::Animation, z_level::ZLevel},
-    ui::{CursorSelectionTarget, CursorTargetTime, Selectable, Selection, Viewer},
+    render::z_level::ZLevel,
+    ui::{
+        camera, CursorDragSelect, CursorDragSelectType, CursorSelectionTarget, CursorTargetTime,
+        Selectable, Selection, Viewer,
+    },
 };
 
 pub struct UnitsRenderPlugin {}
 
 impl Plugin for UnitsRenderPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set_to_stage(
-            config::Stage::UiSync,
-            ConditionSet::new()
-                .label_and_after(config::UiSyncLabel::Sync)
-                .run_in_state(config::EngineState::InGame)
-                .with_system(run_new_unit_position_to_transforms)
-                .with_system(run_new_figures_spritesheet)
-                .with_system(run_add_new_selection_box)
-                .with_system(run_selection_box_display_type)
-                .into(),
-        );
-        app.add_system_set_to_stage(
-            config::Stage::UiSync,
-            ConditionSet::new()
-                .label_and_after(config::UiSyncLabel::Update)
-                .run_in_state(config::EngineState::InGame)
-                .with_system(run_unit_position_to_transfors)
-                .with_system(run_update_selection_box)
-                .into(),
-        );
+        app.add_plugin(ShapePlugin)
+            .add_enter_system(config::EngineState::LoadingGraphics, setup_drag_selection)
+            .add_system_set_to_stage(
+                config::Stage::UiSync,
+                ConditionSet::new()
+                    .label_and_after(config::UiSyncLabel::Sync)
+                    .run_in_state(config::EngineState::InGame)
+                    .with_system(run_new_unit_position_to_transforms)
+                    .with_system(run_new_figures_spritesheet)
+                    .with_system(run_add_new_selection_box)
+                    .with_system(run_selection_box_display_type)
+                    .into(),
+            )
+            .add_system_set_to_stage(
+                config::Stage::UiSync,
+                ConditionSet::new()
+                    .label_and_after(config::UiSyncLabel::Update)
+                    .run_in_state(config::EngineState::InGame)
+                    .with_system(run_unit_position_to_transfors)
+                    .with_system(run_update_selection_box)
+                    .with_system(update_drag_selection)
+                    .into(),
+            );
     }
 }
 
@@ -391,5 +399,57 @@ pub fn run_update_selection_box(
                 }
             }
         }
+    }
+}
+
+#[derive(Component, Clone, Copy, Debug, Default)]
+pub struct DragSelectionBox {}
+
+pub fn setup_drag_selection(mut commands: Commands, viewer_query: Query<Entity, With<Viewer>>) {
+    let viewer = viewer_query.single();
+    commands.entity(viewer).with_children(|builder| {
+        builder
+            .spawn_bundle(ShapeBundle {
+                visibility: Visibility { is_visible: false },
+                ..GeometryBuilder::new().build(
+                    DrawMode::Stroke(StrokeMode::new(Color::GREEN, 2.0)),
+                    Transform::default(),
+                )
+            })
+            .insert(DragSelectionBox::default());
+    });
+}
+
+pub fn update_drag_selection(
+    windows: Res<Windows>,
+    camera_transform_query: Query<(&Camera, &Transform), With<PixelProjection>>,
+    viewer_query: Query<(&CursorDragSelect, ChangeTrackers<CursorDragSelect>), With<Viewer>>,
+    mut drag_selection_box: Query<(&mut Path, &mut Visibility), With<DragSelectionBox>>,
+) {
+    let (mut path, mut visibility) = drag_selection_box.single_mut();
+    let (cursor_drag_select, cursor_drag_select_tracker) = viewer_query.single();
+    if let CursorDragSelect(CursorDragSelectType::Dragging(drag_anchor_position)) =
+        cursor_drag_select
+    {
+        let window = windows.get_primary().unwrap();
+        let (camera, camera_transform) = camera_transform_query.single();
+        if let Some(pixel_position) =
+            camera::camera_position_to_pixel_position(window, camera, camera_transform)
+        {
+            let polygon = Polygon {
+                points: vec![
+                    pixel_position,
+                    Vec2::new(pixel_position.x, drag_anchor_position.y),
+                    *drag_anchor_position,
+                    Vec2::new(drag_anchor_position.x, pixel_position.y),
+                ],
+                closed: true,
+            };
+            *path = ShapePath::build_as(&polygon);
+            visibility.is_visible = true;
+        }
+    } else if cursor_drag_select_tracker.is_changed() {
+        *path = ShapePath::new().build();
+        visibility.is_visible = false;
     }
 }

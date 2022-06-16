@@ -3,9 +3,9 @@ use bevy_pixel_camera::PixelProjection;
 use kayak_ui::bevy::BevyContext;
 use leafwing_input_manager::prelude::*;
 
-use crate::prelude::*;
+use crate::{game::map::Position, prelude::*};
 
-mod camera;
+pub mod camera;
 pub struct InputPlugin {}
 
 impl Plugin for InputPlugin {
@@ -81,6 +81,7 @@ fn interact(
     mut viewer_query: Query<
         (
             &mut Selection,
+            &mut CursorDragSelect,
             &mut CursorTargetTime,
             &mut CursorSelectionTarget,
         ),
@@ -94,7 +95,7 @@ fn interact(
         None => false,
     };
 
-    if (!ui_contains_cursor) {
+    if !ui_contains_cursor {
         let window = windows.get_primary().unwrap();
 
         let (camera, camera_transform) = camera_transform_query.single();
@@ -103,45 +104,80 @@ fn interact(
         {
             let map = map_query.single();
             let cursor_position = map.pixel_position_to_position(pixel_position);
-            let (mut selection, mut cursor_target_time, mut cursor_selection_target) =
-                viewer_query.single_mut();
+            let (
+                mut selection,
+                mut cursor_drag_select,
+                mut cursor_target_time,
+                mut cursor_selection_target,
+            ) = viewer_query.single_mut();
 
-            let mut trying_to_select: Option<bool> =
-                if input_action_state.just_released(InputActions::Select) {
-                    Some(false)
+            let pressed = input_action_state.pressed(InputActions::Select);
+            let just_pressed = input_action_state.just_pressed(InputActions::Select);
+            let just_released = input_action_state.just_released(InputActions::Select);
+
+            if let CursorDragSelectType::Dragging(anchor) = cursor_drag_select.0 {
+                let bounding_box = (map.pixel_position_to_position(anchor), cursor_position);
+                let mut selections = Vec::new();
+                for (entity, position) in selectable_query.iter() {
+                    if in_bounding_box(&bounding_box, position) {
+                        selections.push(entity);
+                    }
+                }
+                if just_released {
+                    cursor_drag_select.0 = CursorDragSelectType::None;
+                    selection.select_units(selections)
                 } else {
-                    None
-                };
-            let mut not_hovering = true;
+                    cursor_selection_target.0.select_units(selections);
+                }
+            } else if pressed && !just_pressed {
+                cursor_drag_select.0 = CursorDragSelectType::Dragging(pixel_position);
+            } else {
+                let mut trying_to_select: Option<bool> =
+                    if input_action_state.just_released(InputActions::Select) {
+                        Some(false)
+                    } else {
+                        None
+                    };
+                let mut not_hovering = true;
 
-            for (entity, position) in selectable_query.iter() {
-                if &cursor_position == position {
-                    not_hovering = false;
-                    if !cursor_selection_target.0.is_selected(entity) {
-                        cursor_selection_target.0.select_unit(entity);
-                        cursor_target_time.0.reset();
-                        cursor_target_time.0.unpause();
-                    }
+                for (entity, position) in selectable_query.iter() {
+                    if &cursor_position == position {
+                        not_hovering = false;
+                        if !cursor_selection_target.0.is_selected(entity) {
+                            cursor_selection_target.0.select_unit(entity);
+                            cursor_target_time.0.reset();
+                            cursor_target_time.0.unpause();
+                        }
 
-                    if trying_to_select.is_some() && !selection.is_selected_alone(entity) {
-                        selection.select_unit(entity);
-                        trying_to_select = Some(true);
+                        if trying_to_select.is_some() && !selection.is_selected_alone(entity) {
+                            selection.select_unit(entity);
+                            trying_to_select = Some(true);
+                        }
                     }
                 }
-            }
-            match trying_to_select {
-                Some(have_selected) if !have_selected => {
-                    selection.clear();
+                match trying_to_select {
+                    Some(have_selected) if !have_selected => {
+                        selection.clear();
+                    }
+                    _ => {}
                 }
-                _ => {}
-            }
-            if not_hovering && !cursor_selection_target.0.is_empty() {
-                cursor_selection_target.0.clear();
-                cursor_target_time.0.reset();
-                cursor_target_time.0.pause();
+                if not_hovering && !cursor_selection_target.0.is_empty() {
+                    cursor_selection_target.0.clear();
+                    cursor_target_time.0.reset();
+                    cursor_target_time.0.pause();
+                }
             }
         }
     }
+}
+
+fn in_bounding_box(bounding_box: &(Position, Position), position: &Position) -> bool {
+    let min_x = std::cmp::min(bounding_box.0.x, bounding_box.1.x);
+    let max_x = std::cmp::max(bounding_box.0.x, bounding_box.1.x);
+    let min_y = std::cmp::min(bounding_box.0.y, bounding_box.1.y);
+    let max_y = std::cmp::max(bounding_box.0.y, bounding_box.1.y);
+
+    position.x >= min_x && position.x <= max_x && position.y >= min_y && position.y <= max_y
 }
 
 // we go through all entities that can be hovered in current context (how do we do that actually?)
@@ -214,7 +250,11 @@ impl Selection {
     }
 
     pub fn select_units(&mut self, mut entities: Vec<Entity>) {
-        self.0 = SelectionType::Units(HashSet::from_iter(entities.drain(..)));
+        self.0 = match entities.len() {
+            0 => SelectionType::None,
+            1 => SelectionType::Unit(entities[0]),
+            _ => SelectionType::Units(HashSet::from_iter(entities.drain(..))),
+        };
     }
 
     // add unit to a valid unit selection, ignores otherwise
@@ -244,7 +284,7 @@ impl Selection {
             SelectionType::Units(selected_entities) => {
                 let mut new_selected_entities = selected_entities.clone();
                 new_selected_entities.remove(&entity);
-                if (new_selected_entities.len() <= 1) {
+                if new_selected_entities.len() <= 1 {
                     self.0 = SelectionType::Unit(*selected_entities.iter().next().unwrap());
                 } else {
                     self.0 = SelectionType::Units(new_selected_entities);
@@ -264,9 +304,20 @@ pub struct CursorTargetTime(pub Stopwatch);
 #[derive(Component, Debug, Clone, Default)]
 pub struct CursorSelectionTarget(pub Selection);
 
+#[derive(Component, Debug, Clone, Default)]
+pub struct CursorDragSelect(pub CursorDragSelectType);
+
+#[derive(Debug, Clone, Default)]
+pub enum CursorDragSelectType {
+    #[default]
+    None,
+    Dragging(Vec2),
+}
+
 #[derive(Bundle, Debug, Clone, Default)]
 pub struct CursorTargetBundle {
     pub target_time: CursorTargetTime,
+    pub drag_select: CursorDragSelect,
     pub selection_target: CursorSelectionTarget,
     // pub interaction_target - what will happen if you right click
     // pub tooltip_target - what tooltip to show for this

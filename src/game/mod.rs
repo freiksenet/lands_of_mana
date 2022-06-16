@@ -170,7 +170,10 @@ fn update_stockpile_resources(
                 stockpiles_query.iter_mut()
             {
                 let stockpile_amount = stockpile_resource_amount;
-                stockpiles_by_player.try_insert(player.0.id(), HashMap::new());
+                #[allow(unused_must_use)]
+                {
+                    stockpiles_by_player.try_insert(player.0.id(), HashMap::new());
+                }
                 stockpiles_by_player.entry(player.0.id()).and_modify(
                     |m: &mut HashMap<
                         game::world::StockpileResourceType,

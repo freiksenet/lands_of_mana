@@ -1,17 +1,62 @@
-# Real time 4X game inspired by Master of Magic, Dominions and Paradox GSGs
+# Lands of Mana (working title) - Real time 4X game inspired by Master of Magic, Dominions and Paradox GSGs
+
+## Assets and maps
+
+Assets and maps aren't licensed with Apache License, but are proprietary. Submodule in git has them, you need access to that module for assets.
+
+## Game engine description
+
+Game uses Bevy, a ECS engine written in Rust. Tis pretty cool. Also uses the following libraries of note:
+
+1. `iyes_loopless` - better game states and fixed timestep stages, based on Bevy's RFC
+2. `bevy_ecs_tilemap` - nice tilemap rendering. We use `rewrite` branch.
+3. `kayak_ui` - sort of React like UI rendering thing. Very new and fresh, I don't love it, but I also hate all the alternatives. Ideally egui would be my choice irt interface (immediate mode), but egui doesn't allow any UI styling. Maybe writing a custom egui renderer for pixel art would be cool.
+4. `leafwing-input-manager` - input and keybindings. Nice abstractions for action indirection.
+5. `bevy_kira_audio` - audio stuff, haven't used it, looks good
+6. `bevy_asset_loader` - nice asset loading
+
+We render stuff in 2d, trying to do it pixel art style (mostly not very pixel perfect).
+
+### Rust Modules
+
+- `prelude` - export all top levels and common deps (bevy, loopless) so that you can just import that
+- `assets` - all asset loading stuff
+- `config` - states, stages and labels
+- `game` - game world entities and systems, reacting to game actions, loading map, game tick
+- `gui` - kayak ui stuff and bindings
+- `render` - all rendering related stuff
+- `ui` - user input stuff and input abstractions (selected). should prolly rename to `input` or `control` or smth.
+
+### Folders
+
+- `assets` - submodule with assets from a closed repo
+
+### Entity structure
+
+### Stages, labels and ordering
+
+`config.rs` has fancy stuff to order labels and after stuff automatically, so you call `label_and_after` to set a label and put systems to after.
+
+Normal frame operates in two stages - bevy's default Update and UiSync. Update reacts to input and issues world actions (label `Input`) and then updates game world based on world actions (`GameActions` label). In UiSync stage, GUI bindings are updated and changes are made to components that indicate what needs to be rendered based on game world (`Sync` label). `Update` label does majority of graphic changes (so changes to Spritesheets, Transforms etc should happen there).
+
+`EngineState` is used for sequencing loading, but probably is overly complicated for no reason. Lots of loading graphics can probably happen dynamically based on entities that don't have corresponding compononts for rendering. After `EngineState` reaches the `InGame`, most systems start running (other states mostly have enter/exit systems only). In future I'd guess `MainMenu` would be a state and then `LoadingGame` state that might have substates if they require ordering (or just labels).
+
+When game is unpaused (`InGameState::Running`), every fixed timestep (currently just 1s, should be controllable) `GameTick` stage happens. `Tick` label does actual increment, then `UpdateEntities` should see if new things have spawned or old things should despawn (like if movement finished, combat round happened, if a unit died, if a unit finished building) and then `UpdateResources` does upkeep. Upkeep and income is done for _future_ tick, so added things do it, but removed things won't.
+
+### Tidbits and various random observations
 
 ## Random refactorings
 
 - [ ] Render should add transforms to world etc
-- [ ] Camera should be child of world or player
-- [ ] Make Selected a component again
-- [ ] Make animation type a component that changes, instead of a reaction ot selection
-- [ ] Borders and UI need to be connected to game world for deconstructing
-- [ ] Make GUI a plugin, unite all bindings in a system
+- [ ] Make GUI a plugin, unite all bindings in a system, maybe add autobinding based on world query and counter in resource
 - [ ] Refactor structs that are single value to just be single value
 - [ ] Default values for some sentinels, group into bundlesn better
 - [ ] Kayak UI doesn't intercept clicks correctly
 - [ ] Fix .0 weirdness for selection target
+- [ ] Make separate module for selection rendering stuff
+- [ ] Make separate module for selection input handling stuff
+- [ ] Interact system is horrible, make it nicer
+- [ ] Spritesheets for buttons and icons
 
 ## Project plan
 
@@ -26,6 +71,8 @@
   - [x] ui top bar
   - [x] concept of entities using and giving resources
   - [ ] selection ui
+    - [x] selection by clicking and selection box
+    - [x] drag selection
     - [ ] screen for selected entity
     - [ ] city
     - [ ] units

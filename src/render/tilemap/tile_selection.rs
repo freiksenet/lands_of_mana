@@ -9,11 +9,10 @@
 ///   INCORNER_LEFT_TOP, INCORNER_RIGHT_TOP, INCORNER_LEFT_BOTTOM, INCORNER_RIGHT_BOTTOM
 ///
 ///
-use std::{collections::BTreeMap, fmt::Debug, ops::Add};
+use std::{collections::BTreeMap, fmt::Debug};
 
 use bevy::utils::HashSet;
 use num_derive::FromPrimitive;
-use num_traits::FromPrimitive;
 
 use super::game::map::TerrainType;
 

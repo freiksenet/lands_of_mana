@@ -13,20 +13,26 @@ pub mod prelude;
 pub mod render;
 pub mod ui;
 
+use bevy::asset::AssetServerSettings;
+
 use crate::prelude::*;
 
 fn main() {
     let window = WindowDescriptor {
-        // mode: bevy::window::WindowMode::BorderlessFullscreen,
+        mode: bevy::window::WindowMode::BorderlessFullscreen,
         title: String::from("mom4x"),
-        width: 1600.,
-        height: 1000.,
+        // width: 1600.,
+        // height: 1000.,
         ..Default::default()
     };
 
     let mut app = App::new();
 
     app.insert_resource(window)
+        .insert_resource(AssetServerSettings {
+            asset_folder: "assets/export".to_string(),
+            watch_for_changes: true,
+        })
         .insert_resource(Msaa { samples: 1 })
         .add_loopless_state(config::EngineState::LoadingAssets);
 

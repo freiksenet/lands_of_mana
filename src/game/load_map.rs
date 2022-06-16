@@ -18,7 +18,7 @@ pub fn load_map(
 ) {
     let mut loader = Loader::new();
     let map = loader
-        .load_tmx_map(Path::new("./maps/world_of_magic_export.tmx"))
+        .load_tmx_map(Path::new("./assets/maps/world_of_magic.tmx"))
         .unwrap();
 
     let base_layer = get_tile_layer(&map, TileLayerName::Base);

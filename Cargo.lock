@@ -2950,6 +2950,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "lands_of_mana"
+version = "0.1.0"
+dependencies = [
+ "assoc",
+ "benimator",
+ "bevy",
+ "bevy-inspector-egui",
+ "bevy_asset_loader",
+ "bevy_ecs_tilemap",
+ "bevy_egui",
+ "bevy_framepace",
+ "bevy_kayak_ui",
+ "bevy_kira_audio",
+ "bevy_pixel_camera",
+ "bevy_prototype_lyon",
+ "cargo-dylint",
+ "dylint-link",
+ "egui",
+ "euclid 0.20.14",
+ "fart-2d-geom",
+ "iyes_loopless",
+ "kayak_core",
+ "kayak_font",
+ "kayak_render_macros",
+ "kayak_ui",
+ "leafwing-input-manager",
+ "num-derive",
+ "num-traits 0.2.15",
+ "strum",
+ "strum_macros",
+ "tiled",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3310,40 +3344,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b9f1c5b025cda876f66ef43a113f91ebc9f4ccef34843000e0adf6ebbab84e21"
 dependencies = [
  "winapi",
-]
-
-[[package]]
-name = "mom4x"
-version = "0.1.0"
-dependencies = [
- "assoc",
- "benimator",
- "bevy",
- "bevy-inspector-egui",
- "bevy_asset_loader",
- "bevy_ecs_tilemap",
- "bevy_egui",
- "bevy_framepace",
- "bevy_kayak_ui",
- "bevy_kira_audio",
- "bevy_pixel_camera",
- "bevy_prototype_lyon",
- "cargo-dylint",
- "dylint-link",
- "egui",
- "euclid 0.20.14",
- "fart-2d-geom",
- "iyes_loopless",
- "kayak_core",
- "kayak_font",
- "kayak_render_macros",
- "kayak_ui",
- "leafwing-input-manager",
- "num-derive",
- "num-traits 0.2.15",
- "strum",
- "strum_macros",
- "tiled",
 ]
 
 [[package]]

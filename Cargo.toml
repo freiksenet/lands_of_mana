@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name = "mom4x"
+name = "lands_of_mana"
 version = "0.1.0"
 
 [workspace]

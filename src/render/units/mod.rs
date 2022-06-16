@@ -412,8 +412,8 @@ pub fn setup_drag_selection(mut commands: Commands, viewer_query: Query<Entity, 
             .spawn_bundle(ShapeBundle {
                 visibility: Visibility { is_visible: false },
                 ..GeometryBuilder::new().build(
-                    DrawMode::Stroke(StrokeMode::new(Color::GREEN, 2.0)),
-                    Transform::default(),
+                    DrawMode::Stroke(StrokeMode::new(Color::GREEN, 1.0)),
+                    Transform::from_translation(Vec3::new(0., 0., ZLevel::UnitDecorations.into())),
                 )
             })
             .insert(DragSelectionBox::default());

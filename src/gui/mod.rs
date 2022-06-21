@@ -1,11 +1,19 @@
 use bevy::{asset::AssetPath, utils::HashMap};
 use bevy_egui::{egui, EguiContext, EguiPlugin, EguiSettings};
 
-use crate::{config::UiSyncLabel, game::InGameState, prelude::*};
+use crate::{
+    config::UiSyncLabel,
+    game::{
+        world::{CapacityResourceType, StockpileResourceType},
+        InGameState,
+    },
+    prelude::*,
+};
 
 pub mod systems;
 pub mod widgets;
 
+use systems::*;
 pub struct GuiPlugin {}
 
 impl Plugin for GuiPlugin {
@@ -16,9 +24,18 @@ impl Plugin for GuiPlugin {
                 config::Stage::UiSync,
                 ConditionSet::new()
                     .run_in_state(config::EngineState::InGame)
+                    .label_and_after(UiSyncLabel::Sync)
+                    .with_system(bind_current_player_resources)
+                    .into(),
+            )
+            .add_system_set_to_stage(
+                config::Stage::UiSync,
+                ConditionSet::new()
+                    .run_in_state(config::EngineState::InGame)
                     .label_and_after(UiSyncLabel::Update)
-                    .with_system(systems::title_bar)
-                    .with_system(systems::time_bar)
+                    .with_system(title_bar)
+                    .with_system(resource_bar)
+                    .with_system(time_bar)
                     .into(),
             );
     }
@@ -183,6 +200,45 @@ impl GuiContext {
     ) -> Option<&egui::TextureId> {
         self.textures.get(&(texture_type, name.to_owned()))
     }
+
+    pub fn icon_texture_id_for_stockpile_resource(
+        &self,
+        resource_type: &StockpileResourceType,
+    ) -> egui::TextureId {
+        *match resource_type {
+            StockpileResourceType::Gold => self
+                .textures
+                .get(&(TextureType::IconOutline, "res-gold".to_owned())),
+            StockpileResourceType::Wood => self
+                .textures
+                .get(&(TextureType::IconOutline, "res-wood".to_owned())),
+        }
+        .unwrap()
+    }
+
+    pub fn icon_texture_id_for_capacity_resource(
+        &self,
+        resource_type: &CapacityResourceType,
+    ) -> egui::TextureId {
+        *match resource_type {
+            CapacityResourceType::Sun => self
+                .textures
+                .get(&(TextureType::IconOutline, "mana-sun".to_owned())),
+            CapacityResourceType::Arcana => self
+                .textures
+                .get(&(TextureType::IconOutline, "mana-arcana".to_owned())),
+            CapacityResourceType::Death => self
+                .textures
+                .get(&(TextureType::IconOutline, "mana-death".to_owned())),
+            CapacityResourceType::Chaos => self
+                .textures
+                .get(&(TextureType::IconOutline, "mana-chaos".to_owned())),
+            CapacityResourceType::Nature => self
+                .textures
+                .get(&(TextureType::IconOutline, "mana-nature".to_owned())),
+        }
+        .unwrap()
+    }
 }
 
 impl Default for GuiContext {
@@ -209,6 +265,7 @@ pub fn egui_setup(
     icon_assets: Res<assets::IconAssets>,
     mut egui_settings: ResMut<EguiSettings>,
 ) {
+    commands.init_resource::<PlayerResources>();
     egui_settings.scale_factor = 2.; // TODO: always scale to like 800
     let mut gui_context = GuiContext::new();
     gui_context.setup(&mut egui_context, &asset_server, &ui_assets, &icon_assets);

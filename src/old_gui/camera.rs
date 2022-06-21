@@ -58,7 +58,6 @@ impl UICameraBundle {
 }
 
 #[derive(Debug, Clone, Component, Reflect)]
-#[reflect(Component)]
 pub struct UIOrthographicProjection {
     pub left: f32,
     pub right: f32,

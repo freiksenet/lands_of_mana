@@ -1,6 +1,6 @@
 use bevy::{core::Stopwatch, utils::HashSet};
+use bevy_egui::EguiContext;
 use bevy_pixel_camera::PixelProjection;
-use kayak_ui::bevy::BevyContext;
 use leafwing_input_manager::prelude::*;
 
 use crate::{game::map::Position, prelude::*};
@@ -74,7 +74,7 @@ fn input_to_game_actions(
 
 fn interact(
     windows: Res<Windows>,
-    kayak_context_option: Option<Res<BevyContext>>,
+    egui_context_option: Option<ResMut<EguiContext>>,
     camera_transform_query: Query<(&Camera, &Transform), With<PixelProjection>>,
     map_query: Query<&game::map::Map>,
     input_action_query: Query<&ActionState<InputActions>>,
@@ -90,8 +90,8 @@ fn interact(
     selectable_query: Query<(Entity, &game::map::Position), With<Selectable>>,
 ) {
     let input_action_state = input_action_query.single();
-    let ui_contains_cursor = match kayak_context_option {
-        Some(kayak_context) => kayak_context.contains_cursor(),
+    let ui_contains_cursor = match egui_context_option {
+        Some(mut egui_context) => egui_context.ctx_mut().wants_pointer_input(),
         None => false,
     };
 

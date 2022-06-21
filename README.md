@@ -10,10 +10,10 @@ Game uses Bevy, a ECS engine written in Rust. Tis pretty cool. Also uses the fol
 
 1. `iyes_loopless` - better game states and fixed timestep stages, based on Bevy's RFC
 2. `bevy_ecs_tilemap` - nice tilemap rendering. We use `rewrite` branch.
-3. `kayak_ui` - sort of React like UI rendering thing. Very new and fresh, I don't love it, but I also hate all the alternatives. Ideally egui would be my choice irt interface (immediate mode), but egui doesn't allow any UI styling. Maybe writing a custom egui renderer for pixel art would be cool.
-4. `leafwing-input-manager` - input and keybindings. Nice abstractions for action indirection.
-5. `bevy_kira_audio` - audio stuff, haven't used it, looks good
-6. `bevy_asset_loader` - nice asset loading
+3. `leafwing-input-manager` - input and keybindings. Nice abstractions for action indirection.
+4. `bevy_kira_audio` - audio stuff, haven't used it, looks good
+5. `bevy_asset_loader` - nice asset loading
+6. `bevy_egui` - immediate mode gui
 
 We render stuff in 2d, trying to do it pixel art style (mostly not very pixel perfect).
 
@@ -23,7 +23,7 @@ We render stuff in 2d, trying to do it pixel art style (mostly not very pixel pe
 - `assets` - all asset loading stuff
 - `config` - states, stages and labels
 - `game` - game world entities and systems, reacting to game actions, loading map, game tick
-- `gui` - kayak ui stuff and bindings
+- `gui` - egui stuff
 - `render` - all rendering related stuff
 - `ui` - user input stuff and input abstractions (selected). should prolly rename to `input` or `control` or smth.
 
@@ -51,7 +51,6 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
 - [ ] Make GUI a plugin, unite all bindings in a system, maybe add autobinding based on world query and counter in resource
 - [ ] Refactor structs that are single value to just be single value
 - [ ] Default values for some sentinels, group into bundlesn better
-- [ ] Kayak UI doesn't intercept clicks correctly
 - [ ] Fix .0 weirdness for selection target
 - [ ] Make separate module for selection rendering stuff
 - [ ] Make separate module for selection input handling stuff

@@ -1,21 +1,5 @@
-#![allow(clippy::forget_non_drop)]
-#![allow(clippy::derive_partial_eq_without_eq)]
-#![allow(clippy::type_complexity)]
-#![feature(allocator_api)]
-#![feature(trait_alias)]
-#![feature(map_try_insert)]
-
-pub mod assets;
-pub mod config;
-pub mod game;
-pub mod gui;
-pub mod prelude;
-pub mod render;
-pub mod ui;
-
 use bevy::asset::AssetServerSettings;
-
-use crate::prelude::*;
+use lands_of_mana::prelude::*;
 
 fn main() {
     let window = WindowDescriptor {
@@ -37,7 +21,7 @@ fn main() {
         .add_loopless_state(config::EngineState::LoadingAssets);
 
     app.add_plugins(DefaultPlugins)
-        .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
+        // .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
         .add_plugin(assets::AssetLoadingPlugin {})
         .add_plugin(game::GamePlugin {})
         .add_plugin(render::RenderPlugin {})

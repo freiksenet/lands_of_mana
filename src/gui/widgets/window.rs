@@ -157,6 +157,11 @@ impl NinePatchWindow {
         self
     }
 
+    pub fn max_size(mut self, size: impl Into<egui::Vec2>) -> Self {
+        self.resize = self.resize.max_size(size);
+        self
+    }
+
     /// Sets the window pos and size and prevents it from being moved and resized by dragging its edges.
     pub fn fixed_rect(self, rect: egui::Rect) -> Self {
         self.fixed_pos(rect.min).fixed_size(rect.size())
@@ -231,11 +236,8 @@ impl NinePatchWindow {
 
         let nine_patch =
             if let Some((body_nine_patch_texture, body_nine_patch_size)) = body_nine_patch {
-                Some(NinePatch::begin(
-                    &mut content_frame.content_ui,
-                    body_nine_patch_texture,
-                    body_nine_patch_size,
-                ))
+                let nine_patch = NinePatch::new(body_nine_patch_texture, body_nine_patch_size);
+                Some(nine_patch.begin(&mut content_frame.content_ui))
             } else {
                 None
             };
@@ -355,7 +357,8 @@ impl TitleBar {
             ui.allocate_rect(full_top_rect, Sense::focusable_noninteractive());
             let nine_patch =
                 if let Some((nine_patch_texture_id, nine_patch_size)) = nine_patch_options_option {
-                    Some(NinePatch::begin(ui, nine_patch_texture_id, nine_patch_size))
+                    let nine_patch = NinePatch::new(nine_patch_texture_id, nine_patch_size);
+                    Some(nine_patch.begin(ui))
                 } else {
                     None
                 };

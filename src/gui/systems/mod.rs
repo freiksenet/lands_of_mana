@@ -3,7 +3,10 @@ use bevy_egui::{egui, EguiContext};
 
 use crate::{
     game::{world::*, GameDay, GameTick, InGameState},
-    gui::{widgets::*, GuiContext, TextureType},
+    gui::{
+        gui_context::{GuiContext, TextureType},
+        widgets::*,
+    },
     prelude::*,
 };
 
@@ -211,7 +214,7 @@ pub fn resource_bar(
 pub fn time_bar(
     mut egui_context: ResMut<EguiContext>,
     gui_context: Res<GuiContext>,
-    game_state: Res<CurrentState<InGameState>>,
+    _game_state: Res<CurrentState<InGameState>>,
     game_time_query: Query<(&GameDay, &GameTick)>,
 ) {
     let (GameDay(game_day), GameTick(game_tick)) = game_time_query.single();
@@ -240,30 +243,30 @@ pub fn time_bar(
                     egui::RichText::new(format!("Tick\u{00A0}{:02}", game_tick + 1))
                         .text_style(egui::TextStyle::Body),
                 );
-                ui.add_enabled(
-                    game_state.0 == InGameState::Running,
-                    icon_button(
-                        *gui_context
-                            .get_texture_id(TextureType::Button, "shallow")
-                            .unwrap(),
-                        *gui_context
-                            .get_texture_id(TextureType::IconOutline, "pause")
-                            .unwrap(),
-                        egui::vec2(16., 16.),
-                    ),
-                );
-                ui.add_enabled(
-                    game_state.0 == InGameState::Paused,
-                    icon_button(
-                        *gui_context
-                            .get_texture_id(TextureType::Button, "shallow")
-                            .unwrap(),
-                        *gui_context
-                            .get_texture_id(TextureType::IconOutline, "resume")
-                            .unwrap(),
-                        egui::vec2(16., 16.),
-                    ),
-                );
+                // ui.add_enabled(
+                //     game_state.0 == InGameState::Running,
+                //     icon_button(
+                //         *gui_context
+                //             .get_texture_id(TextureType::Button, "shallow")
+                //             .unwrap(),
+                //         *gui_context
+                //             .get_texture_id(TextureType::IconOutline, "pause")
+                //             .unwrap(),
+                //         egui::vec2(16., 16.),
+                //     ),
+                // );
+                // ui.add_enabled(
+                //     game_state.0 == InGameState::Paused,
+                //     icon_button(
+                //         *gui_context
+                //             .get_texture_id(TextureType::Button, "shallow")
+                //             .unwrap(),
+                //         *gui_context
+                //             .get_texture_id(TextureType::IconOutline, "resume")
+                //             .unwrap(),
+                //         egui::vec2(16., 16.),
+                //     ),
+                // );
             });
         });
 }

@@ -1,4 +1,7 @@
-use crate::prelude::{egui, egui::layers::ShapeIdx};
+use crate::prelude::{
+    egui,
+    egui::{emath::RectTransform, layers::ShapeIdx},
+};
 
 // pub trait NinePatchWindow {
 //     fn show_nine_patch<R>(
@@ -33,24 +36,67 @@ use crate::prelude::{egui, egui::layers::ShapeIdx};
 pub struct NinePatch {
     texture_id: egui::TextureId,
     size: egui::Vec2,
+    uv: Option<egui::Rect>,
+    rect: Option<egui::Rect>,
+}
+
+pub struct NinePatchPrepared {
+    texture_id: egui::TextureId,
+    size: egui::Vec2,
     shape_idx: ShapeIdx,
+    uv: egui::Rect,
+    rect: Option<egui::Rect>,
 }
 
 impl NinePatch {
-    pub fn begin(ui: &mut egui::Ui, texture_id: egui::TextureId, size: egui::Vec2) -> Self {
+    pub fn new(texture_id: egui::TextureId, size: egui::Vec2) -> Self {
+        NinePatch {
+            texture_id,
+            size,
+            uv: None,
+            rect: None,
+        }
+    }
+
+    pub fn uv(mut self, uv: egui::Rect) -> Self {
+        self.uv = Some(uv);
+        self
+    }
+
+    pub fn rect(mut self, rect: egui::Rect) -> Self {
+        self.rect = Some(rect);
+        self
+    }
+
+    pub fn begin(self, ui: &mut egui::Ui) -> NinePatchPrepared {
         let margin = ui.style_mut().spacing.window_margin;
         ui.style_mut().spacing.window_margin = egui::style::Margin::same(0.);
         let shape_idx = ui.painter().add(egui::Shape::Noop);
         ui.style_mut().spacing.window_margin = margin;
-        NinePatch {
-            texture_id,
-            size,
+        let uv = match self.uv {
+            Some(uv) => uv,
+            _ => egui::Rect::from_min_max(egui::pos2(0., 0.), egui::pos2(1., 1.)),
+        };
+        NinePatchPrepared {
+            texture_id: self.texture_id,
+            size: self.size,
             shape_idx,
+            uv,
+            rect: self.rect,
         }
     }
+}
 
+impl NinePatchPrepared {
     pub fn end(&self, ui: &mut egui::Ui) {
-        nine_patch_ui(ui, self.texture_id, self.size, self.shape_idx);
+        nine_patch_ui(
+            ui,
+            self.texture_id,
+            self.size,
+            self.uv,
+            self.shape_idx,
+            self.rect,
+        );
     }
 }
 
@@ -58,27 +104,41 @@ fn nine_patch_ui(
     ui: &mut egui::Ui,
     texture_id: egui::TextureId,
     size: egui::Vec2,
+    uv: egui::Rect,
     background_idx: ShapeIdx,
+    rect: Option<egui::Rect>,
 ) {
-    let rect = ui.min_rect();
+    let rect = match rect {
+        Some(rect) => rect,
+        _ => ui.min_rect(),
+    };
     let _width = (rect.width() / size.x).ceil() as u32;
     let height = (rect.height() / size.y).ceil() as u32;
 
     if ui.is_rect_visible(rect) {
+        let uv_transform = RectTransform::from_to(
+            egui::Rect::from_min_max(egui::pos2(0., 0.), egui::pos2(1., 1.)),
+            uv,
+        );
         let mut mesh = egui::Mesh::with_texture(texture_id);
         if height == 1 {
-            small_long_nine_patch_ui(&mut mesh, rect, size);
+            small_long_nine_patch_ui(&mut mesh, rect, size, uv_transform);
         // } else if width == 1 {
         //     small_narrow_nine_patch_ui(&mut mesh, rect, size);
         } else {
-            big_nine_patch_ui(&mut mesh, rect, size);
+            big_nine_patch_ui(&mut mesh, rect, size, uv_transform);
         }
         ui.painter().set(background_idx, mesh)
     }
 }
 
 // Less than 2 rows of nine patch
-fn small_long_nine_patch_ui(mesh: &mut egui::Mesh, rect: egui::Rect, size: egui::Vec2) {
+fn small_long_nine_patch_ui(
+    mesh: &mut egui::Mesh,
+    rect: egui::Rect,
+    size: egui::Vec2,
+    uv_transform: RectTransform,
+) {
     let left = rect.left();
     let missing_width = match rect.width() % size.x {
         rem if rem == 0. => 0.,
@@ -108,7 +168,11 @@ fn small_long_nine_patch_ui(mesh: &mut egui::Mesh, rect: egui::Rect, size: egui:
             _ => egui::Rect::from_min_max(egui::pos2(0.33, 0.33), egui::pos2(0.66, 0.66)),
         };
 
-        mesh.add_rect_with_uv(top_rect, top_uv_rect, egui::Color32::WHITE);
+        mesh.add_rect_with_uv(
+            top_rect,
+            uv_transform.transform_rect(top_uv_rect),
+            egui::Color32::WHITE,
+        );
 
         let bottom_rect = egui::Rect::from_min_max(
             egui::pos2(start_x, top + height),
@@ -128,7 +192,11 @@ fn small_long_nine_patch_ui(mesh: &mut egui::Mesh, rect: egui::Rect, size: egui:
             _ => egui::Rect::from_min_max(egui::pos2(0.33, 0.33), egui::pos2(0.66, 0.66)),
         };
 
-        mesh.add_rect_with_uv(bottom_rect, bottom_uv_rect, egui::Color32::WHITE);
+        mesh.add_rect_with_uv(
+            bottom_rect,
+            uv_transform.transform_rect(bottom_uv_rect),
+            egui::Color32::WHITE,
+        );
     }
 }
 
@@ -138,7 +206,12 @@ fn small_long_nine_patch_ui(mesh: &mut egui::Mesh, rect: egui::Rect, size: egui:
 // }
 
 // bigger nine patch
-fn big_nine_patch_ui(mesh: &mut egui::Mesh, rect: egui::Rect, size: egui::Vec2) {
+fn big_nine_patch_ui(
+    mesh: &mut egui::Mesh,
+    rect: egui::Rect,
+    size: egui::Vec2,
+    uv_transform: RectTransform,
+) {
     let left = rect.left();
     let width = (rect.width() / size.x).ceil() as u32;
     let missing_width = match rect.width() % size.x {
@@ -163,7 +236,11 @@ fn big_nine_patch_ui(mesh: &mut egui::Mesh, rect: egui::Rect, size: egui::Vec2) 
             );
 
             let uv_rect = big_nine_patch_uv(uv_from_index(x, y, width, height));
-            mesh.add_rect_with_uv(tile_rect, uv_rect, egui::Color32::WHITE);
+            mesh.add_rect_with_uv(
+                tile_rect,
+                uv_transform.transform_rect(uv_rect),
+                egui::Color32::WHITE,
+            );
         }
     }
 }

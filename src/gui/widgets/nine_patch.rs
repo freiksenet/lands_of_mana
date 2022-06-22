@@ -61,15 +61,15 @@ fn nine_patch_ui(
     background_idx: ShapeIdx,
 ) {
     let rect = ui.min_rect();
-    let width = (rect.width() / size.x).ceil() as u32;
+    let _width = (rect.width() / size.x).ceil() as u32;
     let height = (rect.height() / size.y).ceil() as u32;
 
     if ui.is_rect_visible(rect) {
         let mut mesh = egui::Mesh::with_texture(texture_id);
         if height == 1 {
             small_long_nine_patch_ui(&mut mesh, rect, size);
-        } else if width == 1 {
-            small_narrow_nine_patch_ui(&mut mesh, rect, size);
+        // } else if width == 1 {
+        //     small_narrow_nine_patch_ui(&mut mesh, rect, size);
         } else {
             big_nine_patch_ui(&mut mesh, rect, size);
         }
@@ -133,9 +133,9 @@ fn small_long_nine_patch_ui(mesh: &mut egui::Mesh, rect: egui::Rect, size: egui:
 }
 
 // Less than 2 cols of nine patch
-fn small_narrow_nine_patch_ui(mesh: &mut egui::Mesh, rect: egui::Rect, size: egui::Vec2) {
-    panic!("TODO");
-}
+// fn small_narrow_nine_patch_ui(mesh: &mut egui::Mesh, rect: egui::Rect, size: egui::Vec2) {
+//     panic!("TODO");
+// }
 
 // bigger nine patch
 fn big_nine_patch_ui(mesh: &mut egui::Mesh, rect: egui::Rect, size: egui::Vec2) {

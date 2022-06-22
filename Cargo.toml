@@ -99,9 +99,11 @@ version = "0.11.0"
 features = ["stageless", "2d"]
 
 [patch.crates-io]
-#git = "https://github.com/freiksenet/egui", branch = "freiksenet/more-exports",
-egui = { path = "../egui/egui", features = ["bytemuck"] }
+egui = { git = "https://github.com/freiksenet/egui", branch = "freiksenet/more-exports", features = [
+  "bytemuck"
+] }
 
+# egui = { path = "../egui/egui", features = ["bytemuck"] }
 [[bin]]
 name = "lands_of_mana"
 

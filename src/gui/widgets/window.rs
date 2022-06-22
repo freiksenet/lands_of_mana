@@ -259,7 +259,7 @@ impl NinePatchWindow {
         if let Some(title_bar) = title_bar {
             title_bar.ui(
                 &mut area_content_ui,
-                frame_response.rect,
+                // frame_response.rect,
                 frame_response,
                 title_bar_nine_patch,
             );
@@ -275,8 +275,8 @@ impl NinePatchWindow {
 }
 
 struct TitleBar {
-    /// A title Id used for dragging windows
-    id: Id,
+    // /// A title Id used for dragging windows
+    // id: Id,
     /// Prepared text in the title
     title_galley: WidgetTextGalley,
     /// Size of the title bar in a collapsed state (if window is collapsible),
@@ -308,10 +308,10 @@ fn show_title_bar(ui: &mut Ui, title: WidgetText) -> TitleBar {
 
         let minimum_width = 2.0 * (pad + button_size.x + item_spacing.x) + title_galley.size().x;
         let min_rect = egui::Rect::from_min_size(ui.min_rect().min, vec2(minimum_width, height));
-        let response = ui.allocate_rect(min_rect, Sense::click());
+        let _response = ui.allocate_rect(min_rect, Sense::click());
 
         TitleBar {
-            id: response.id,
+            // id: response.id,
             title_galley,
             min_rect,
             rect: egui::Rect::NAN, // Will be filled in later
@@ -342,7 +342,6 @@ impl TitleBar {
     fn ui(
         mut self,
         ui: &mut Ui,
-        outer_rect: egui::Rect,
         content_response: Response,
         nine_patch_options_option: Option<(TextureId, egui::Vec2)>,
     ) {

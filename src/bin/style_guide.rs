@@ -1,5 +1,5 @@
 use bevy::asset::AssetServerSettings;
-use bevy_egui::{egui, EguiContext, EguiPlugin, EguiSettings};
+use bevy_egui::{egui, EguiContext, EguiPlugin};
 use lands_of_mana::{
     gui::{widgets::*, GuiContext, TextureType},
     prelude::*,
@@ -79,7 +79,7 @@ fn style_guide_system(mut egui_context: ResMut<EguiContext>, gui_context: Res<Gu
                         .get_texture_id(TextureType::Button, "deep")
                         .unwrap(), *gui_context
                             .get_texture_id(TextureType::IconOutline, "mana-death")
-                            .unwrap()));
+                            .unwrap(), egui::vec2(32., 32.)));
                 });
             });
     });

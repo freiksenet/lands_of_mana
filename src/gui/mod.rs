@@ -5,7 +5,6 @@ use crate::{
     config::UiSyncLabel,
     game::{
         world::{CapacityResourceType, StockpileResourceType},
-        InGameState,
     },
     prelude::*,
 };

@@ -1,6 +1,12 @@
 # Lands of Mana (working title) - Real time 4X game inspired by Master of Magic, Dominions and Paradox GSGs
 
-## Assets and maps
+## Running
+
+- `cargo run` runs the game.
+- Assets and maps aren't licensed with Apache License, but are proprietary. Submodule in git has them, you need access to that module for assets.
+- You can run `cargo run --bin style_guide` to see GUI style guide (widgets available that are ready)
+
+### Assets and maps
 
 Assets and maps aren't licensed with Apache License, but are proprietary. Submodule in git has them, you need access to that module for assets.
 
@@ -48,14 +54,12 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
 ## Random refactorings
 
 - [ ] Render should add transforms to world etc
-- [ ] Make GUI a plugin, unite all bindings in a system, maybe add autobinding based on world query and counter in resource
 - [ ] Refactor structs that are single value to just be single value
 - [ ] Default values for some sentinels, group into bundlesn better
 - [ ] Fix .0 weirdness for selection target
 - [ ] Make separate module for selection rendering stuff
 - [ ] Make separate module for selection input handling stuff
 - [ ] Interact system is horrible, make it nicer
-- [ ] Spritesheets for buttons and icons
 
 ## Project plan
 

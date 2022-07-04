@@ -1,5 +1,3 @@
-
-
 use bevy::asset::AssetServerSettings;
 use bevy_egui::{egui, EguiContext, EguiPlugin};
 use lands_of_mana::{
@@ -33,7 +31,7 @@ fn main() {
         .add_system(bevy::window::exit_on_window_close_system)
         .add_plugin(assets::AssetLoadingPlugin {})
         .add_plugin(EguiPlugin)
-        .add_exit_system(config::EngineState::LoadingAssets, gui::egui_setup)
+        .add_exit_system(config::EngineState::LoadingAssets, gui::setup_egui)
         .add_system(style_guide_system.run_in_state(config::EngineState::LoadingAssets.next()))
         .run();
 }

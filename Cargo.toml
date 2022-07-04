@@ -22,7 +22,7 @@ bevy = { features = ["dynamic"] }
 lto = "thin"
 
 [dependencies]
-iyes_loopless = "0.5"
+iyes_loopless = { git = "https://github.com/NiklasEi/iyes_loopless", branch = "loopless-schedule-ext-trait" }
 bevy-inspector-egui = "0.11"
 bevy_ecs_tilemap = { git = "https://github.com/StarArawn/bevy_ecs_tilemap", branch = "rewrite" }
 leafwing-input-manager = "0.3"
@@ -95,7 +95,8 @@ features = [
 ]
 
 [dependencies.bevy_asset_loader]
-version = "0.11.0"
+# version = "0.11.0"
+git = "https://github.com/NiklasEi/bevy_asset_loader"
 features = ["stageless", "2d"]
 
 [patch.crates-io]
@@ -103,7 +104,6 @@ egui = { git = "https://github.com/freiksenet/egui", branch = "freiksenet/more-e
   "bytemuck"
 ] }
 
-# egui = { path = "../egui/egui", features = ["bytemuck"] }
 [[bin]]
 name = "lands_of_mana"
 

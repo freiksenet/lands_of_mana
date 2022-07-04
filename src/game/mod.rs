@@ -27,6 +27,13 @@ impl Plugin for GamePlugin {
         );
         game_tick_stage.add_system_set(
             ConditionSet::new()
+                .label_and_after(config::GameTickStageLabel::UpdateEntities)
+                .run_in_state(InGameState::Running)
+                .with_system(noop)
+                .into(),
+        );
+        game_tick_stage.add_system_set(
+            ConditionSet::new()
                 .label_and_after(config::GameTickStageLabel::UpdateResources)
                 .run_in_state(InGameState::Running)
                 .with_system(update_stockpile_resources)
@@ -58,9 +65,12 @@ impl Plugin for GamePlugin {
     }
 }
 
+fn noop() {}
+
 fn setup_game_world(mut commands: Commands) {
     commands
         .spawn_bundle(GameWorldBundle::empty())
+        .insert(FirstDay(true))
         .with_children(|builder| {
             builder
                 .spawn_bundle(world::PlayerBundle {
@@ -134,18 +144,19 @@ fn setup_actions(mut commands: Commands, world_query: Query<Entity, With<GameWor
         });
 }
 
-fn game_tick(mut game_time_query: Query<(&mut GameTick, &mut GameDay)>) {
-    let (mut game_tick, mut game_day) = game_time_query.single_mut();
+fn game_tick(mut game_time_query: Query<(&mut GameTick, &mut GameDay, &mut FirstDay)>) {
+    let (mut game_tick, mut game_day, mut first_day) = game_time_query.single_mut();
     game_tick.0 += 1;
     if game_tick.0 >= 10 {
         game_tick.0 = 0;
         game_day.0 += 1;
+        first_day.0 = false;
     }
 }
 
 fn update_stockpile_resources(
     mut _commands: Commands,
-    game_tick_query: Query<&GameTick, Changed<GameDay>>,
+    game_tick_query: Query<(&GameTick, &FirstDay), Changed<GameDay>>,
     mut stockpiles_query: Query<(
         &game::world::OfPlayer,
         &game::world::StockpileResourceType,
@@ -157,8 +168,8 @@ fn update_stockpile_resources(
         &game::world::StockpileResourceProsumer,
     )>,
 ) {
-    if let Ok(game_tick) = game_tick_query.get_single() {
-        if game_tick.0 == 0 {
+    if let Ok((game_tick, first_day)) = game_tick_query.get_single() {
+        if game_tick.0 == 0 && !first_day.0 {
             let mut stockpiles_by_player: HashMap<
                 u32,
                 HashMap<
@@ -234,6 +245,9 @@ impl GameWorldBundle {
         }
     }
 }
+
+#[derive(Component, Debug)]
+pub struct FirstDay(pub bool);
 
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GameTick(pub usize);

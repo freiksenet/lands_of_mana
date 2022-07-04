@@ -1,18 +1,19 @@
-use bevy_asset_loader::{AssetCollection, AssetLoader};
+use bevy_asset_loader::prelude::*;
 
 use crate::prelude::*;
 pub struct AssetLoadingPlugin {}
 
 impl Plugin for AssetLoadingPlugin {
     fn build(&self, app: &mut App) {
-        AssetLoader::new(config::EngineState::LoadingAssets)
-            .continue_to_state(config::EngineState::LoadingAssets.next())
-            .with_collection::<TileAssets>()
-            .with_collection::<CreatureAssets>()
-            .with_collection::<UiAssets>()
-            // .with_collection::<FontAssets>()
-            .with_collection::<IconAssets>()
-            .build(app);
+        app.add_loading_state(
+            LoadingState::new(config::EngineState::LoadingAssets)
+                .continue_to_state(config::EngineState::LoadingAssets.next())
+                .with_collection::<TileAssets>()
+                .with_collection::<CreatureAssets>()
+                .with_collection::<UiAssets>()
+                // .with_collection::<FontAssets>()
+                .with_collection::<IconAssets>(),
+        );
     }
 }
 

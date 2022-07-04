@@ -60,6 +60,8 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
 - [ ] Make separate module for selection rendering stuff
 - [ ] Make separate module for selection input handling stuff
 - [ ] Interact system is horrible, make it nicer
+- [ ] Refactor all unneeded random clone/copy stuff and ref/borrow passing
+- [ ] Remove need of using patched egui
 
 ## Project plan
 

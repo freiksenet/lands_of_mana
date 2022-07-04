@@ -1,5 +1,5 @@
 use bevy::{asset::AssetPath, utils::HashMap};
-use bevy_egui::{egui, EguiContext};
+use bevy_egui::{egui, EguiContext, EguiSettings};
 use strum_macros::{EnumIter, EnumString};
 
 use crate::{
@@ -8,10 +8,21 @@ use crate::{
     prelude::*,
 };
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct GuiContext {
     textures: HashMap<(TextureType, String), egui::TextureId>,
     style: GuiStyle,
+    desired_width: u32,
+}
+
+impl Default for GuiContext {
+    fn default() -> Self {
+        GuiContext {
+            desired_width: 1280,
+            style: GuiStyle::default(),
+            textures: HashMap::new(),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -39,10 +50,16 @@ impl GuiContext {
     pub fn setup(
         &mut self,
         egui_context: &mut ResMut<EguiContext>,
+        windows: &Res<Windows>,
+        egui_settings: &mut ResMut<EguiSettings>,
         asset_server: &Res<AssetServer>,
         ui_assets: &Res<assets::UiAssets>,
         icon_assets: &Res<assets::IconAssets>,
     ) -> &Self {
+        let window = windows.get_primary().unwrap();
+        let window_width = window.physical_width();
+        let scale = window_width as f64 / self.desired_width as f64;
+        egui_settings.scale_factor = scale;
         self.setup_textures(egui_context, asset_server, ui_assets, icon_assets)
             .setup_font_assets(egui_context)
             .setup_styles(egui_context)
@@ -55,6 +72,7 @@ impl GuiContext {
             spacing,
             window_margin,
             interact_size,
+            ..
         } = self.style;
         let mut style: egui::Style = (*ctx.style()).clone();
 

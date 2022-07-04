@@ -2,7 +2,8 @@ use assoc::AssocExt;
 use bevy_egui::{egui, EguiContext};
 
 use crate::{
-    game::{world::*, GameDay, GameTick, InGameState},
+    config::{EngineState, Stage, UiSyncLabel},
+    game::world::*,
     gui::{
         gui_context::{GuiContext, TextureType},
         widgets::*,
@@ -10,31 +11,36 @@ use crate::{
     prelude::*,
 };
 
-pub fn title_bar(mut egui_context: ResMut<EguiContext>, gui_context: Res<GuiContext>) {
-    NinePatchWindow::new("Title Bar")
-        .title_bar(false)
-        .auto_sized()
-        .anchor(egui::Align2::LEFT_TOP, egui::Vec2::new(4., 4.))
-        .frame(
-            egui::Frame::window(&egui_context.ctx_mut().style())
-                .inner_margin(egui::style::Margin::symmetric(32., 8.)),
-        )
-        .body_nine_patch(
-            *gui_context
-                .get_texture_id(TextureType::Window, "scroll_horizontal_wrapped")
-                .unwrap(),
-            egui::vec2(32., 16.),
-        )
-        .show(egui_context.ctx_mut(), |ui| {
-            ui.label(
-                egui::RichText::new("Lands of Mana")
-                    .text_style(egui::TextStyle::Name("Heading2".into())),
+pub struct ResourceBarPlugin {}
+
+impl Plugin for ResourceBarPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_enter_system(config::EngineState::LoadingGraphics, setup_resource_bar)
+            .add_system_set_to_stage(
+                Stage::UiSync,
+                ConditionSet::new()
+                    .run_in_state(EngineState::InGame)
+                    .label_and_after(UiSyncLabel::Sync)
+                    .with_system(bind_current_player_resources)
+                    .into(),
+            )
+            .add_system_set_to_stage(
+                config::Stage::UiSync,
+                ConditionSet::new()
+                    .run_in_state(EngineState::InGame)
+                    .label_and_after(UiSyncLabel::Update)
+                    .with_system(resource_bar)
+                    .into(),
             );
-        });
+    }
+}
+
+fn setup_resource_bar(mut commands: Commands) {
+    commands.init_resource::<PlayerResources>();
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
-pub struct PlayerStockpileResource {
+struct PlayerStockpileResource {
     pub amount: f32,
     pub income: f32,
     // Tooltip stuff here maybe? could be separate tyfpe
@@ -43,15 +49,15 @@ pub struct PlayerStockpileResource {
 impl Eq for PlayerStockpileResource {}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub struct PlayerCapacityResource {
+struct PlayerCapacityResource {
     pub free: i32,
     pub total: i32,
     // Tooltip stuff here maybe? could be separate type
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 
-pub struct PlayerResources {
+struct PlayerResources {
     pub stockpile_resources: Vec<(StockpileResourceType, PlayerStockpileResource)>,
     pub capacity_resources: Vec<(CapacityResourceType, PlayerCapacityResource)>,
 }
@@ -101,7 +107,7 @@ impl Default for PlayerResources {
     }
 }
 
-pub fn bind_current_player_resources(
+fn bind_current_player_resources(
     mut player_resources: ResMut<PlayerResources>,
     stockpile_resources_query: Query<(
         &game::world::StockpileResourceType,
@@ -167,7 +173,7 @@ pub fn bind_current_player_resources(
     }
 }
 
-pub fn resource_bar(
+fn resource_bar(
     mut egui_context: ResMut<EguiContext>,
     gui_context: Res<GuiContext>,
     resources: Res<PlayerResources>,
@@ -207,66 +213,6 @@ pub fn resource_bar(
                     );
                     ui.label(format!("{:}/{:}", resource.free, resource.total));
                 }
-            });
-        });
-}
-
-pub fn time_bar(
-    mut egui_context: ResMut<EguiContext>,
-    gui_context: Res<GuiContext>,
-    _game_state: Res<CurrentState<InGameState>>,
-    game_time_query: Query<(&GameDay, &GameTick)>,
-) {
-    let (GameDay(game_day), GameTick(game_tick)) = game_time_query.single();
-    NinePatchWindow::new("Time Bar")
-        .title_bar(false)
-        .auto_sized()
-        .anchor(egui::Align2::RIGHT_TOP, egui::Vec2::new(-4., 4.))
-        .frame(
-            egui::Frame::window(&egui_context.ctx_mut().style())
-                .inner_margin(egui::style::Margin::symmetric(8., 0.)),
-        )
-        .body_nine_patch(
-            *gui_context
-                .get_texture_id(TextureType::Window, "bright")
-                .unwrap(),
-            egui::vec2(32., 16.),
-        )
-        .show(egui_context.ctx_mut(), |ui| {
-            ui.horizontal(|ui| {
-                ui.label(
-                    egui::RichText::new(format!("Day\u{00A0}{:04}", game_day + 1))
-                        .text_style(egui::TextStyle::Body),
-                );
-
-                ui.label(
-                    egui::RichText::new(format!("Tick\u{00A0}{:02}", game_tick + 1))
-                        .text_style(egui::TextStyle::Body),
-                );
-                // ui.add_enabled(
-                //     game_state.0 == InGameState::Running,
-                //     icon_button(
-                //         *gui_context
-                //             .get_texture_id(TextureType::Button, "shallow")
-                //             .unwrap(),
-                //         *gui_context
-                //             .get_texture_id(TextureType::IconOutline, "pause")
-                //             .unwrap(),
-                //         egui::vec2(16., 16.),
-                //     ),
-                // );
-                // ui.add_enabled(
-                //     game_state.0 == InGameState::Paused,
-                //     icon_button(
-                //         *gui_context
-                //             .get_texture_id(TextureType::Button, "shallow")
-                //             .unwrap(),
-                //         *gui_context
-                //             .get_texture_id(TextureType::IconOutline, "resume")
-                //             .unwrap(),
-                //         egui::vec2(16., 16.),
-                //     ),
-                // );
             });
         });
 }

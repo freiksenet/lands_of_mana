@@ -1,16 +1,16 @@
 use strum_macros::{EnumIter, EnumString};
 
 use crate::prelude::*;
-#[derive(Component, Debug, Clone, Default)]
+#[derive(Component, Debug, Default)]
 pub struct Player {}
 
-#[derive(Component, Debug, Clone, Default)]
+#[derive(Component, Debug, Default)]
 pub struct PlayerName(pub String);
 
-#[derive(Component, Debug, Clone, Default)]
+#[derive(Component, Debug, Default)]
 pub struct PlayerColor(pub Color);
 
-#[derive(Bundle, Clone, Debug, Default)]
+#[derive(Bundle, Debug, Default)]
 pub struct PlayerBundle {
     pub player: Player,
     pub name: PlayerName,
@@ -19,18 +19,18 @@ pub struct PlayerBundle {
     pub global_transform: GlobalTransform,
 }
 
-#[derive(Component, Debug, Clone, PartialEq, Hash)]
+#[derive(Component, Debug, PartialEq, Hash)]
 
 pub struct OfPlayer(pub Entity);
 
-#[derive(Bundle, Clone, Debug)]
+#[derive(Bundle, Debug)]
 pub struct PlayerStockpileBundle {
     pub resource: StockpileResourceType,
     pub amount: StockpileResourceAmount,
     pub player: OfPlayer,
 }
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug)]
 pub struct StockpileResourceAmount(pub f32);
 
 #[derive(Component, Debug, Clone, Copy, EnumIter, EnumString, Eq, PartialEq, Default, Hash)]
@@ -40,17 +40,17 @@ pub enum StockpileResourceType {
     Wood,
 }
 
-#[derive(Component, Clone, Debug)]
+#[derive(Component, Debug)]
 pub struct StockpileResourceProsumer(pub f32);
 
-#[derive(Bundle, Clone, Debug)]
+#[derive(Bundle, Debug)]
 pub struct StockpileResourceProsumerBundle {
     pub resource: StockpileResourceType,
     pub prosumer: StockpileResourceProsumer,
     pub player: OfPlayer,
 }
 
-#[derive(Bundle, Clone, Debug)]
+#[derive(Bundle, Debug)]
 pub struct PlayerCapacityBundle {
     pub player: OfPlayer,
     pub resource: CapacityResourceType,
@@ -66,10 +66,10 @@ pub enum CapacityResourceType {
     Nature,
 }
 
-#[derive(Component, Clone, Debug)]
+#[derive(Component, Debug)]
 pub struct CapacityResourceProsumer(pub i32);
 
-#[derive(Bundle, Clone, Debug)]
+#[derive(Bundle, Debug)]
 pub struct CapacityResourceProsumerBundle {
     pub resource: CapacityResourceType,
     pub prosumer: CapacityResourceProsumer,

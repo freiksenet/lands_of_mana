@@ -1,22 +1,22 @@
 use std::collections::HashMap;
 
 use bevy::ecs::system::EntityCommands;
-use strum_macros::{EnumIter, EnumString};
+use strum_macros::{Display, EnumIter, EnumString};
 
-use crate::prelude::{
-    game::{map, world},
-    *,
+use crate::{
+    game::{map, world, world::OfPlayer},
+    prelude::*,
 };
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug)]
 pub struct UnitFigure {
     pub index: usize,
 }
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug)]
 pub struct UnitFigureHealth(u32);
 
-#[derive(Bundle, Debug, Clone)]
+#[derive(Bundle, Debug)]
 pub struct UnitFigureBundle {
     pub figure: UnitFigure,
     pub health: UnitFigureHealth,
@@ -33,11 +33,12 @@ impl UnitFigureBundle {
     }
 }
 
-#[derive(Bundle, Debug, Clone)]
+#[derive(Bundle, Debug)]
 pub struct UnitBundle {
     pub unit: Unit,
     pub unit_type: UnitType,
     pub position: map::Position,
+    pub player: OfPlayer,
 }
 
 impl UnitBundle {
@@ -53,6 +54,7 @@ impl UnitBundle {
                 unit: Unit {},
                 unit_type,
                 position,
+                player: OfPlayer(player_entity),
             })
             .with_children(|unit| {
                 for index in 0..unit_stats.max_figures {
@@ -76,17 +78,17 @@ impl UnitBundle {
     }
 }
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug)]
 pub struct Unit {}
 
-#[derive(Component, Clone, Copy, Debug, EnumString, EnumIter)]
+#[derive(Component, Clone, Copy, Debug, EnumString, EnumIter, Display)]
 pub enum UnitType {
     Skeleton,
     DeathKnight,
     GiantSpider,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct UnitStats {
     pub max_figures: usize,
     pub max_health: u32,

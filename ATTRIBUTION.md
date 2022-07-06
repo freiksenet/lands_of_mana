@@ -1,3 +1,6 @@
 # Attribution
 
-TODO: Collect all attributions, for now a temp list to make sure I don't miss it
+- [Krishna Palacio](https://itch.io/profile/krishna-palacio) - MiniFantasy UI pack and other MiniFantasy assets
+- [Caio Clockwork Raven](https://clockworkraven.itch.io/) - Lots of icons
+- [Aleksandr Makarov](https://iknowkingrabbit.itch.io/) - tilesets and UI elements
+- [Eeve Somepx](https://somepx.itch.io/) - Fonts

@@ -9,7 +9,10 @@ use tiled::{
 };
 
 use super::province::CityBundle;
-use crate::prelude::*;
+use crate::{
+    game::map::{Position, TerrainBase, TerrainBundle, TerrainType},
+    prelude::*,
+};
 
 pub fn load_map(
     mut commands: Commands,
@@ -65,12 +68,12 @@ pub fn load_map(
                 let x = map_x;
                 let y = height - map_y - 1;
                 let terrain = commands
-                    .spawn_bundle(game::map::TerrainBundle {
+                    .spawn_bundle(TerrainBundle {
                         province: game::province::InProvince(*province_entity),
-                        position: game::map::Position { x, y },
-                        base: game::map::TerrainBase {
-                            terrain_type: game::map::TerrainType::from_u32(tile.id()).unwrap(),
-                        },
+                        position: Position::new(x, y),
+                        base: TerrainBase(TerrainType::from_u32(tile.id()).unwrap()),
+
+                        ..Default::default()
                     })
                     .id();
                 commands.entity(*province_entity).add_child(terrain);

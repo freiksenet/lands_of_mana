@@ -13,9 +13,11 @@ impl Plugin for GuiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(EguiPlugin)
             .add_enter_system(config::EngineState::LoadingGraphics, setup_egui)
+            .add_plugin(plugins::DebugTooltipPlugin {})
             .add_plugin(plugins::TitleBarPlugin {})
             .add_plugin(plugins::TimeBarPlugin {})
-            .add_plugin(plugins::ResourceBarPlugin {});
+            .add_plugin(plugins::ResourceBarPlugin {})
+            .add_plugin(plugins::SelectedWindowPlugin {});
     }
 }
 

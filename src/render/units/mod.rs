@@ -15,7 +15,7 @@ use crate::{
     render::z_level::ZLevel,
     ui::{
         camera, CursorDragSelect, CursorDragSelectType, CursorSelectionTarget, CursorTargetTime,
-        Selectable, Selection, Viewer,
+        Selectable, Selected, Viewer,
     },
 };
 
@@ -188,16 +188,16 @@ pub fn set_unit_transform(
     };
 }
 
-#[derive(Component, Clone, Copy, Debug)]
+#[derive(Component, Debug)]
 pub struct WithSelectionBox {
     pub selection_display_type: SelectionDisplayType,
     pub selection_box_entity: Entity,
 }
 
-#[derive(Component, Clone, Copy, Debug, Default)]
+#[derive(Component, Debug, Default)]
 pub struct SelectionBox {}
 
-#[derive(Bundle, Clone, Debug, Default)]
+#[derive(Bundle, Debug, Default)]
 pub struct SelectionBoxBundle {
     selection_box: SelectionBox,
     #[bundle]
@@ -231,18 +231,23 @@ impl SelectionDisplayType {
 pub fn run_selection_box_display_type(
     viewer_query: Query<
         (
-            &Selection,
+            &Selected,
             &CursorTargetTime,
             &CursorSelectionTarget,
-            ChangeTrackers<Selection>,
+            ChangeTrackers<Selected>,
             ChangeTrackers<CursorSelectionTarget>,
         ),
         With<Viewer>,
     >,
     mut selection_box_display_query: Query<(Entity, &mut WithSelectionBox)>,
 ) {
-    let (selection, _cursor_time, selection_target, selection_tracker, selection_target_tracker) =
-        viewer_query.single();
+    let (
+        Selected(selection),
+        _cursor_time,
+        selection_target,
+        selection_tracker,
+        selection_target_tracker,
+    ) = viewer_query.single();
     if selection_tracker.is_changed() || selection_target_tracker.is_changed() {
         for (entity, mut selection_box_display) in selection_box_display_query.iter_mut() {
             if selection.is_selected(entity) && selection_target.0.is_selected(entity) {
@@ -291,7 +296,7 @@ pub enum SelectionBoxCorner {
     SouthEast = 9,
 }
 
-#[derive(Bundle, Clone)]
+#[derive(Bundle)]
 pub struct SelectionBoxCornerBundle {
     corner: SelectionBoxCorner,
     #[bundle]
@@ -402,7 +407,7 @@ pub fn run_update_selection_box(
     }
 }
 
-#[derive(Component, Clone, Copy, Debug, Default)]
+#[derive(Component, Debug, Default)]
 pub struct DragSelectionBox {}
 
 pub fn setup_drag_selection(mut commands: Commands, viewer_query: Query<Entity, With<Viewer>>) {

@@ -37,7 +37,7 @@ fn title_bar(mut egui_context: ResMut<EguiContext>, gui_context: Res<GuiContext>
             *gui_context
                 .get_texture_id(TextureType::Window, "scroll_horizontal_wrapped")
                 .unwrap(),
-            egui::vec2(32., 16.),
+            egui::vec2(32., 32.),
         )
         .show(egui_context.ctx_mut(), |ui| {
             ui.label(

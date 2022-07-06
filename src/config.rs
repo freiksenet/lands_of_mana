@@ -29,6 +29,7 @@ pub enum Stage {
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash, SystemLabel)]
 pub enum UpdateStageLabel {
+    UpdateCache, // Update cache entities after game tick
     Input,       // Recieve all input and send game actions
     GameActions, // Perform world changes based on input
 }
@@ -36,7 +37,8 @@ pub enum UpdateStageLabel {
 impl OrderedLabel for UpdateStageLabel {
     fn after(&self) -> Option<UpdateStageLabel> {
         match self {
-            UpdateStageLabel::Input => None,
+            UpdateStageLabel::UpdateCache => None,
+            UpdateStageLabel::Input => Some(UpdateStageLabel::UpdateCache),
             UpdateStageLabel::GameActions => Some(UpdateStageLabel::Input),
         }
     }

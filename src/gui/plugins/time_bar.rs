@@ -44,7 +44,7 @@ fn time_bar(
             *gui_context
                 .get_texture_id(TextureType::Window, "bright")
                 .unwrap(),
-            egui::vec2(32., 16.),
+            egui::vec2(32., 32.),
         )
         .show(egui_context.ctx_mut(), |ui| {
             ui.horizontal(|ui| {

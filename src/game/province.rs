@@ -3,10 +3,19 @@ use std::collections::HashMap;
 use bevy::ecs::system::EntityCommands;
 use strum_macros::{EnumIter, EnumString};
 
-use super::world;
-use crate::prelude::*;
+use crate::{
+    game::{
+        map::Position,
+        world::{
+            CapacityResourceProsumer, CapacityResourceProsumerBundle, CapacityResourceType,
+            OfPlayer, StockpileResourceProsumer, StockpileResourceProsumerBundle,
+            StockpileResourceType,
+        },
+    },
+    prelude::*,
+};
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug)]
 pub struct Province {
     pub name: String,
 }
@@ -20,10 +29,15 @@ impl Default for InProvince {
     }
 }
 
-#[derive(Component, Clone, Copy, Debug, EnumString, EnumIter)]
+#[derive(Component, Debug, Default)]
+pub struct City {}
+
+#[derive(Component, Clone, Copy, Debug, EnumString, EnumIter, Default)]
 pub enum CityType {
-    Capital,
+    #[default]
+    Empty,
     City,
+    MageTower,
 }
 
 #[derive(Component, Clone, Copy, Debug)]
@@ -32,32 +46,53 @@ pub struct OfCity(pub Entity);
 impl CityType {
     pub fn get_city_stats(&self) -> CityStats {
         match self {
-            CityType::Capital => CityStats {
-                city_type: CityType::Capital,
-                base_stockpile_prosumers: HashMap::from([
-                    (world::StockpileResourceType::Gold, 50.),
-                    (world::StockpileResourceType::Wood, 10.),
-                ]),
+            CityType::Empty => CityStats {
+                city_type: CityType::Empty,
+                base_stockpile_prosumers: HashMap::new(),
                 base_capacity_prosumers: HashMap::new(),
+                size: (2, 2),
+            },
+            CityType::MageTower => CityStats {
+                city_type: CityType::MageTower,
+                base_stockpile_prosumers: HashMap::from([
+                    (StockpileResourceType::Gold, 50.),
+                    (StockpileResourceType::Wood, 10.),
+                ]),
+                base_capacity_prosumers: HashMap::from([
+                    (CapacityResourceType::Arcana, 5),
+                    (CapacityResourceType::Chaos, 5),
+                    (CapacityResourceType::Death, 5),
+                    (CapacityResourceType::Nature, 5),
+                    (CapacityResourceType::Sun, 5),
+                ]),
+                size: (2, 2),
             },
             CityType::City => CityStats {
-                city_type: CityType::Capital,
-                base_stockpile_prosumers: HashMap::from([(
-                    world::StockpileResourceType::Gold,
-                    15.,
-                )]),
-                base_capacity_prosumers: HashMap::from([(world::CapacityResourceType::Arcana, 2)]),
+                city_type: CityType::City,
+                base_stockpile_prosumers: HashMap::from([(StockpileResourceType::Gold, 15.)]),
+                base_capacity_prosumers: HashMap::new(),
+                size: (2, 2),
             },
         }
     }
 }
 
-#[derive(Bundle, Clone, Debug)]
+#[derive(Bundle, Debug, Default)]
 pub struct CityBundle {
+    pub city: City,
     pub province: InProvince,
-    pub position: super::map::Position,
+    pub position: Position,
     pub city_type: CityType,
-    pub player: super::world::OfPlayer,
+}
+
+#[derive(Component, Debug, Default)]
+pub struct CityTileIndex(pub usize, pub usize);
+
+#[derive(Bundle, Debug, Default)]
+pub struct CityTileBundle {
+    pub index: CityTileIndex,
+    pub city_type: CityType,
+    pub position: Position,
 }
 
 impl CityBundle {
@@ -66,45 +101,56 @@ impl CityBundle {
         player_entity: Entity,
         city_stats: CityStats,
         province: Entity,
-        position: super::map::Position,
+        position: Position,
     ) -> Entity {
         entity
             .insert_bundle(CityBundle {
                 province: InProvince(province),
                 position,
                 city_type: city_stats.city_type,
-                player: super::world::OfPlayer(player_entity),
+                ..Default::default()
             })
+            .insert(super::world::OfPlayer(player_entity))
             .with_children(|builder| {
+                for x in 0..city_stats.size.0 {
+                    for y in 0..city_stats.size.1 {
+                        builder.spawn().insert_bundle(CityTileBundle {
+                            city_type: city_stats.city_type,
+                            index: CityTileIndex(x, y),
+                            position: position.shift(x as u32, y as u32),
+                        });
+                    }
+                }
                 for (resource, amount) in &city_stats.base_stockpile_prosumers {
                     builder
                         .spawn()
-                        .insert_bundle(super::world::StockpileResourceProsumerBundle {
-                            player: game::world::OfPlayer(player_entity),
+                        .insert_bundle(StockpileResourceProsumerBundle {
+                            player: OfPlayer(player_entity),
                             resource: *resource,
-                            prosumer: game::world::StockpileResourceProsumer(*amount),
+                            prosumer: StockpileResourceProsumer(*amount),
                         })
-                        .insert(super::world::OfPlayer(player_entity));
+                        .insert(OfPlayer(player_entity));
                 }
 
                 for (resource, amount) in &city_stats.base_capacity_prosumers {
                     builder
                         .spawn()
-                        .insert_bundle(super::world::CapacityResourceProsumerBundle {
-                            player: game::world::OfPlayer(player_entity),
+                        .insert_bundle(CapacityResourceProsumerBundle {
+                            player: OfPlayer(player_entity),
                             resource: *resource,
-                            prosumer: game::world::CapacityResourceProsumer(*amount),
+                            prosumer: CapacityResourceProsumer(*amount),
                         })
-                        .insert(super::world::OfPlayer(player_entity));
+                        .insert(OfPlayer(player_entity));
                 }
             })
             .id()
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct CityStats {
     pub city_type: CityType,
-    pub base_stockpile_prosumers: HashMap<super::world::StockpileResourceType, f32>,
-    pub base_capacity_prosumers: HashMap<super::world::CapacityResourceType, i32>,
+    pub base_stockpile_prosumers: HashMap<StockpileResourceType, f32>,
+    pub base_capacity_prosumers: HashMap<CapacityResourceType, i32>,
+    pub size: (usize, usize),
 }

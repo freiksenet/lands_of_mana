@@ -222,10 +222,10 @@ fn handle_world_actions(
     }
 }
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug)]
 pub struct GameWorld {}
 
-#[derive(Bundle, Clone, Debug)]
+#[derive(Bundle, Debug)]
 pub struct GameWorldBundle {
     pub world: GameWorld,
     pub game_day: GameDay,
@@ -249,10 +249,10 @@ impl GameWorldBundle {
 #[derive(Component, Debug)]
 pub struct FirstDay(pub bool);
 
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Component, Debug, PartialEq, Eq)]
 pub struct GameTick(pub usize);
 
-#[derive(Component, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Component, Debug, PartialEq, Eq)]
 pub struct GameDay(pub u32);
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash, Default)]

@@ -25,7 +25,7 @@ impl Plugin for AnimationsRenderPlugin {
     }
 }
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug)]
 pub enum Animation {
     FigureAnimation { animation_type: FigureAnimationType },
 }

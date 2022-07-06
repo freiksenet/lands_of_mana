@@ -186,7 +186,7 @@ fn resource_bar(
             *gui_context
                 .get_texture_id(TextureType::Window, "bright")
                 .unwrap(),
-            egui::vec2(32., 16.),
+            egui::vec2(32., 32.),
         )
         .frame(
             egui::Frame::window(&egui_context.ctx_mut().style())

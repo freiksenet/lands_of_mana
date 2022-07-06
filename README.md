@@ -51,17 +51,22 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
 
 ### Tidbits and various random observations
 
+- x 0, y 0 is bottom-left corner
+  - Multi-tile entities (city) positions are always bottom-left
+
 ## Random refactorings
 
 - [ ] Render should add transforms to world etc
 - [ ] Refactor structs that are single value to just be single value
 - [ ] Default values for some sentinels, group into bundlesn better
-- [ ] Fix .0 weirdness for selection target
 - [ ] Make separate module for selection rendering stuff
 - [ ] Make separate module for selection input handling stuff
 - [ ] Interact system is horrible, make it nicer
-- [ ] Refactor all unneeded random clone/copy stuff and ref/borrow passing
+  - [ ] Separate hover and click
+  - [ ] Don't filter hover on drag over ui
 - [ ] Remove need of using patched egui
+- [ ] World initialization for relevant parts should happen in relevant plugins, not in game (eg ViewerBundle in ui)
+- [ ] ViewerMap should respect ordering and output stable ordering
 
 ## Project plan
 
@@ -78,7 +83,7 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
   - [ ] selection ui
     - [x] selection by clicking and selection box
     - [x] drag selection
-    - [ ] screen for selected entity
+    - [x] screen for selected entity
     - [ ] city
     - [ ] units
     - [ ] sites
@@ -91,14 +96,11 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
       - [ ] forests
       - [ ] mountains
   - [ ] city and city buildings
-  - [ ] sites and site control
   - [ ] building new units
   - [ ] unit stats
   - [ ] building new cities
-  - [ ] unexplored terrain, fog of war, visibility
   - [ ] spellcasting ui and spending mana to cast spell
   - [ ] prototype "big window" ui for things like research, agent, etc
-  - [ ] notification and event ui
   - [ ] prototype spells
     - [ ] persistent spell with upkeep
     - [ ] time limited spell
@@ -106,6 +108,8 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
     - [ ] spell to change unit stats
     - [ ] spell to change resource production
     - [ ] spell to damage unit
+  - [ ] notification and event ui
+  - [ ] unexplored terrain, fog of war, visibility
 - [ ] Phase 3 - exploring prototype gameplay - implementing all systems without content
   - [ ] combat, protected sites
   - [ ] basic neutral mob ai

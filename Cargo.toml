@@ -25,7 +25,7 @@ lto = "thin"
 iyes_loopless = { git = "https://github.com/NiklasEi/iyes_loopless", branch = "loopless-schedule-ext-trait" }
 bevy-inspector-egui = "0.11"
 bevy_ecs_tilemap = { git = "https://github.com/StarArawn/bevy_ecs_tilemap", branch = "rewrite" }
-leafwing-input-manager = "0.3"
+leafwing_input_manager = { git = "https://github.com/Leafwing-Studios/leafwing-input-manager.git", branch = "dev" }
 bevy_kira_audio = "0.9"
 bevy_egui = "0.14"
 benimator = "3"
@@ -40,6 +40,7 @@ tiled = "0.10.2"
 euclid = "0.20.1"
 fart-2d-geom = "0.4.0"
 bevy_prototype_lyon = "0.5.0"
+pathfinding = "3.0.13"
 
 [dependencies.bevy]
 version = "0.7"

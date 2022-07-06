@@ -10,7 +10,14 @@ mod layers;
 mod tile_selection;
 
 use self::tile_selection::TerrainCornersTexture;
-use crate::{assets, game};
+use crate::{
+    assets,
+    game::{
+        self,
+        map::{Position, TerrainBase},
+        province::{CityTileIndex, CityType},
+    },
+};
 
 pub fn setup(
     mut commands: Commands,
@@ -22,7 +29,12 @@ pub fn setup(
         &game::map::TerrainBase,
         Option<&game::map::ProvinceBorder>,
     )>,
-    city_query: Query<(Entity, &game::map::Position, &game::province::CityType)>,
+    city_tile_query: Query<(
+        Entity,
+        &game::map::Position,
+        &game::province::CityType,
+        &game::province::CityTileIndex,
+    )>,
 ) {
     let (game_world_entity, map) = map_query.single();
 
@@ -44,18 +56,18 @@ pub fn setup(
 
     let mut pos_to_terrain: HashMap<&game::map::Position, game::map::TerrainType> = HashMap::new();
 
-    for (_, position, base, _) in terrain_query.iter() {
-        pos_to_terrain.insert(position, base.terrain_type);
+    for (_, position, &TerrainBase(terrain_type), _) in terrain_query.iter() {
+        pos_to_terrain.insert(position, terrain_type);
     }
 
-    for (entity, position, base, _border_option) in terrain_query.iter() {
+    for (entity, position, TerrainBase(terrain_type), _border_option) in terrain_query.iter() {
         let tile_pos: TilePos2d = TilePos2d {
             x: position.x,
             y: position.y,
         };
         let corner = neighbors_to_corner(
             temp_storage.get_neighboring_pos(&tile_pos),
-            &base.terrain_type,
+            terrain_type,
             &pos_to_terrain,
         );
 
@@ -73,16 +85,15 @@ pub fn setup(
         });
     }
 
-    for (entity, position, city) in city_query.iter() {
+    for (entity, position, city, city_tile_index) in city_tile_query.iter() {
         commands.entity(entity).with_children(|builder| {
-            for tile_bundle in build_city_tiles(position, city) {
-                tilemap_layer_manager.insert_tile_bundle(
-                    builder,
-                    &layers::TilemapLayerType::Sites,
-                    &tile_bundle.position,
-                    tile_bundle,
-                )
-            }
+            let city_tile = build_city_tile(position, city, city_tile_index);
+            tilemap_layer_manager.insert_tile_bundle(
+                builder,
+                &layers::TilemapLayerType::Sites,
+                &city_tile.position,
+                city_tile,
+            );
         });
     }
 
@@ -292,29 +303,23 @@ fn build_background(
     }
 }
 
-fn build_city_tiles(
-    game_position: &game::map::Position,
-    city_type: &game::province::CityType,
-) -> Vec<TileBundle> {
+fn build_city_tile(
+    game_position: &Position,
+    city_type: &CityType,
+    &CityTileIndex(x, y): &CityTileIndex,
+) -> TileBundle {
     // Top right corner
-    let (base_tile, width, height) = match city_type {
-        game::province::CityType::Capital => (736, 3, 3),
-        game::province::CityType::City => (588, 2, 2),
+    let base_tile = match city_type {
+        CityType::Empty => 430,
+        CityType::City => 588,
+        CityType::MageTower => 514,
     };
-    let mut city_tiles = Vec::new();
-    for x in 0..width {
-        for y in 0..height {
-            let position = TilePos2d {
-                x: game_position.x + x,
-                y: game_position.y + y,
-            };
-            // coordinates are from bottom left corner, while textures are from top right
-            city_tiles.push(TileBundle {
-                position,
-                texture: TileTexture(base_tile + x + ((height - y - 1) * 16)),
-                ..Default::default()
-            });
-        }
+    TileBundle {
+        position: TilePos2d {
+            x: game_position.x,
+            y: game_position.y,
+        },
+        texture: TileTexture(base_tile + x as u32 + ((2 - y as u32 - 1) * 16)),
+        ..Default::default()
     }
-    city_tiles
 }

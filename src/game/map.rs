@@ -2,7 +2,7 @@ use num_derive::FromPrimitive;
 
 use crate::prelude::*;
 
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug)]
 pub struct Map {
     pub width: u32,
     pub height: u32,
@@ -17,38 +17,82 @@ impl Map {
         )
     }
 
-    pub fn pixel_position_to_position(&self, pixel_position: Vec2) -> game::map::Position {
+    pub fn pixel_position_to_position(&self, pixel_position: Vec2) -> Option<Position> {
         let corner_position = pixel_position + self.get_pixel_midpoint();
-        game::map::Position {
-            x: (corner_position.x / 16.0).floor() as u32,
-            y: (corner_position.y / 16.0).floor() as u32,
+        let x = (corner_position.x / 16.0).floor() as i32;
+        let y = (corner_position.y / 16.0).floor() as i32;
+        if (x >= 0 && x < self.width as i32) && (y >= 0 && y < self.height as i32) {
+            Some(game::map::Position {
+                x: x as u32,
+                y: y as u32,
+            })
+        } else {
+            None
         }
     }
 
+    pub fn pixel_position_to_position_or_map_bound(&self, pixel_position: Vec2) -> Position {
+        let corner_position = pixel_position + self.get_pixel_midpoint();
+        let x = clamp((corner_position.x / 16.0).floor() as u32, 0, self.width - 1);
+        let y = clamp(
+            (corner_position.y / 16.0).floor() as u32,
+            0,
+            self.height - 1,
+        );
+        game::map::Position { x, y }
+    }
+
     /// for position, get pixel position of (0,0) of a tile
-    pub fn position_to_pixel_position(&self, position: &game::map::Position) -> Vec2 {
+    pub fn position_to_pixel_position(&self, position: &Position) -> Vec2 {
         Vec2::new((position.x * 16) as f32, (position.y * 16) as f32) - self.get_pixel_midpoint()
     }
 }
 
-#[derive(Component, Debug, Clone)]
+pub fn clamp<A>(input: A, min: A, max: A) -> A
+where
+    A: std::cmp::Ord,
+{
+    std::cmp::min(std::cmp::max(input, min), max)
+}
+#[derive(Component, Debug)]
 pub struct ProvinceBorder {
     pub color: Color,
 }
 
-#[derive(Component, Debug, Clone)]
-pub struct TerrainBase {
-    pub terrain_type: TerrainType,
-}
+#[derive(Component, Debug, Default)]
+pub struct TerrainBase(pub TerrainType);
 
-#[derive(Component, Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Component, Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Position {
     pub x: u32,
     pub y: u32,
 }
 
-#[derive(Bundle, Clone, Debug)]
+impl Position {
+    pub fn new(x: u32, y: u32) -> Self {
+        Position { x, y }
+    }
+
+    pub fn shift(&self, x: u32, y: u32) -> Position {
+        Position {
+            x: self.x + x,
+            y: self.y + y,
+        }
+    }
+}
+
+impl Default for Position {
+    fn default() -> Self {
+        Position::new(0, 0)
+    }
+}
+
+#[derive(Component, Debug, Default)]
+pub struct Terrain {}
+
+#[derive(Bundle, Debug, Default)]
 pub struct TerrainBundle {
+    pub terrain: Terrain,
     pub province: super::province::InProvince,
     pub position: Position,
     pub base: TerrainBase,
@@ -57,8 +101,9 @@ pub struct TerrainBundle {
 /// Terrain number indicates priority ordering when rendering (higher = higher priority)
 /// It is also a texture id for base land
 #[allow(dead_code)]
-#[derive(Clone, Debug, Copy, PartialOrd, Ord, Eq, PartialEq, Hash, FromPrimitive)]
+#[derive(Clone, Debug, Default, Copy, PartialOrd, Ord, Eq, PartialEq, Hash, FromPrimitive)]
 pub enum TerrainType {
+    #[default]
     Water = 0,
     WaterOcean = 1,
     Ice = 2,

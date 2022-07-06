@@ -54,7 +54,7 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
 - x 0, y 0 is bottom-left corner
   - Multi-tile entities (city) positions are always bottom-left
 
-## Random refactorings
+## Random short term todos
 
 - [ ] Render should add transforms to world etc
 - [ ] Refactor structs that are single value to just be single value
@@ -67,6 +67,8 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
 - [ ] Remove need of using patched egui
 - [ ] World initialization for relevant parts should happen in relevant plugins, not in game (eg ViewerBundle in ui)
 - [ ] ViewerMap should respect ordering and output stable ordering
+- [ ] Mouse controls for map
+- [ ] Province borders re-enable / redesign
 
 ## Project plan
 

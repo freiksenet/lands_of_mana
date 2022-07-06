@@ -234,8 +234,10 @@ pub fn run_selection_box_display_type(
             &Selected,
             &CursorTargetTime,
             &CursorSelectionTarget,
+            &CursorDragSelect,
             ChangeTrackers<Selected>,
             ChangeTrackers<CursorSelectionTarget>,
+            ChangeTrackers<CursorDragSelect>,
         ),
         With<Viewer>,
     >,
@@ -245,17 +247,26 @@ pub fn run_selection_box_display_type(
         Selected(selection),
         _cursor_time,
         selection_target,
+        cursor_drag_select,
         selection_tracker,
         selection_target_tracker,
+        cursor_drag_select_tracker,
     ) = viewer_query.single();
-    if selection_tracker.is_changed() || selection_target_tracker.is_changed() {
+    if selection_tracker.is_changed()
+        || selection_target_tracker.is_changed()
+        || cursor_drag_select_tracker.is_changed()
+    {
+        let selecting = match &cursor_drag_select.0 {
+            CursorDragSelectType::Dragging(_, _, selection) => selection,
+            _ => &selection_target.0,
+        };
         for (entity, mut selection_box_display) in selection_box_display_query.iter_mut() {
-            if selection.is_selected(entity) && selection_target.0.is_selected(entity) {
+            if selection.is_selected(entity) && selecting.is_selected(entity) {
                 selection_box_display.selection_display_type =
                     SelectionDisplayType::SelectedAndSelecting;
             } else if selection.is_selected(entity) {
                 selection_box_display.selection_display_type = SelectionDisplayType::Selected;
-            } else if selection_target.0.is_selected(entity) {
+            } else if selecting.is_selected(entity) {
                 selection_box_display.selection_display_type = SelectionDisplayType::Selecting;
             } else if selection_box_display.selection_display_type != SelectionDisplayType::None {
                 selection_box_display.selection_display_type = SelectionDisplayType::None;
@@ -433,7 +444,7 @@ pub fn update_drag_selection(
 ) {
     let (mut path, mut visibility) = drag_selection_box.single_mut();
     let (cursor_drag_select, cursor_drag_select_tracker) = viewer_query.single();
-    if let CursorDragSelect(CursorDragSelectType::Dragging(drag_anchor_position)) =
+    if let CursorDragSelect(CursorDragSelectType::Dragging(drag_anchor_position, _, _)) =
         cursor_drag_select
     {
         let window = windows.get_primary().unwrap();

@@ -696,6 +696,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_mod_debugdump"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b972ed434c5c2231b2a19f6935671b72b40451abd73548e3e9dd44871164205d"
+dependencies = [
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_render",
+ "pretty-type-name",
+]
+
+[[package]]
 name = "bevy_pbr"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2274,6 +2286,7 @@ dependencies = [
  "bevy_egui",
  "bevy_framepace",
  "bevy_kira_audio",
+ "bevy_mod_debugdump",
  "bevy_pixel_camera",
  "bevy_prototype_lyon",
  "euclid 0.20.14",

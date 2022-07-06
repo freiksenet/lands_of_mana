@@ -17,29 +17,33 @@ impl Map {
         )
     }
 
-    pub fn pixel_position_to_position(&self, pixel_position: Vec2) -> Option<Position> {
+    pub fn pixel_position_to_cursor_position(
+        &self,
+        pixel_position: Vec2,
+    ) -> (Option<Position>, Position) {
         let corner_position = pixel_position + self.get_pixel_midpoint();
         let x = (corner_position.x / 16.0).floor() as i32;
         let y = (corner_position.y / 16.0).floor() as i32;
-        if (x >= 0 && x < self.width as i32) && (y >= 0 && y < self.height as i32) {
-            Some(game::map::Position {
-                x: x as u32,
-                y: y as u32,
-            })
+        let bound_x = clamp(
+            (corner_position.x / 16.0).floor() as i32,
+            0,
+            (self.width - 1) as i32,
+        );
+        let bound_y = clamp(
+            (corner_position.y / 16.0).floor() as i32,
+            0,
+            (self.height - 1) as i32,
+        );
+        let exact_position = if x == bound_x && y == bound_y {
+            Some(Position::new(x as u32, y as u32))
         } else {
             None
-        }
-    }
+        };
 
-    pub fn pixel_position_to_position_or_map_bound(&self, pixel_position: Vec2) -> Position {
-        let corner_position = pixel_position + self.get_pixel_midpoint();
-        let x = clamp((corner_position.x / 16.0).floor() as u32, 0, self.width - 1);
-        let y = clamp(
-            (corner_position.y / 16.0).floor() as u32,
-            0,
-            self.height - 1,
-        );
-        game::map::Position { x, y }
+        (
+            exact_position,
+            Position::new(bound_x as u32, bound_y as u32),
+        )
     }
 
     /// for position, get pixel position of (0,0) of a tile

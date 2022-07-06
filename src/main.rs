@@ -21,6 +21,9 @@ fn main() {
         .add_loopless_state(config::EngineState::LoadingAssets);
 
     app.add_plugins(DefaultPlugins)
+        // app.add_plugins_with(DefaultPlugins, |plugins| {
+        // plugins.disable::<bevy::log::LogPlugin>()
+        // }) // disable LogPlugin so that you can pipe the output directly into `dot -Tsvg`
         // .add_plugin(bevy_inspector_egui::WorldInspectorPlugin::new())
         .add_plugin(assets::AssetLoadingPlugin {})
         .add_plugin(game::GamePlugin {})
@@ -28,4 +31,5 @@ fn main() {
         .add_plugin(ui::InputPlugin {})
         .add_plugin(gui::GuiPlugin {})
         .run();
+    // bevy_mod_debugdump::print_schedule(&mut app);
 }

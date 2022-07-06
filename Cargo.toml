@@ -41,6 +41,7 @@ euclid = "0.20.1"
 fart-2d-geom = "0.4.0"
 bevy_prototype_lyon = "0.5.0"
 pathfinding = "3.0.13"
+bevy_mod_debugdump = "0.4.0"
 
 [dependencies.bevy]
 version = "0.7"

@@ -1,6 +1,6 @@
 use bevy::{core::Stopwatch, utils::HashSet};
 
-use crate::{prelude::*, ui::EntityOnTile};
+use crate::{game::map::Position, prelude::*, ui::EntityOnTile};
 
 #[derive(Component, Debug, Default)]
 pub struct Selectable {}
@@ -118,21 +118,11 @@ pub struct CursorSelectionTarget(pub Selection);
 #[derive(Component, Debug, Default)]
 pub struct CursorDragSelect(pub CursorDragSelectType);
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Default)]
 pub enum CursorDragSelectType {
     #[default]
     None,
-    Dragging(Vec2),
-}
-
-#[derive(Bundle, Debug, Default)]
-pub struct CursorTargetBundle {
-    pub target_time: CursorTargetTime,
-    pub drag_select: CursorDragSelect,
-    pub selection_target: CursorSelectionTarget,
-    // pub interaction_target - what will happen if you right click
-    // pub tooltip_target - what tooltip to show for this
-    pub debug_tooltip: CursorDebugTooltipTarget,
+    Dragging(Vec2, Position, Selection),
 }
 
 #[derive(Component, Debug, Default)]

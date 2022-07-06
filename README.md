@@ -61,9 +61,6 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
 - [ ] Default values for some sentinels, group into bundlesn better
 - [ ] Make separate module for selection rendering stuff
 - [ ] Make separate module for selection input handling stuff
-- [ ] Interact system is horrible, make it nicer
-  - [ ] Separate hover and click
-  - [ ] Don't filter hover on drag over ui
 - [ ] Remove need of using patched egui
 - [ ] World initialization for relevant parts should happen in relevant plugins, not in game (eg ViewerBundle in ui)
 - [ ] ViewerMap should respect ordering and output stable ordering

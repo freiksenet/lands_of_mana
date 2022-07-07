@@ -1,8 +1,4 @@
-use std::hash::Hash;
-
-use bevy::ecs::query::WorldQuery;
 use bevy_egui::EguiContext;
-use bevy_inspector_egui::egui::epaint::text::cursor;
 use bevy_pixel_camera::PixelProjection;
 use leafwing_input_manager::prelude::*;
 
@@ -68,7 +64,6 @@ pub struct CursorBundle {
     pub target_time: CursorTargetTime,
     pub drag_select: CursorDragSelect,
     pub selection_target: CursorSelectionTarget,
-    // pub interaction_target - what will happen if you right click
     // pub tooltip_target - what tooltip to show for this
     pub debug_tooltip: CursorDebugTooltipTarget,
 }
@@ -162,7 +157,7 @@ fn drag_selection(
             }
             selection.select_units(selections);
         }
-    } else if pressed && !just_pressed {
+    } else if pressed && !just_pressed && !cursor_position.in_gui {
         let mut selection = Selection::default();
         selection.select_units(cursor_selection_target.0.entities());
         cursor_drag_select.0 = CursorDragSelectType::Dragging(

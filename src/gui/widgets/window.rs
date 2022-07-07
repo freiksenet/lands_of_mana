@@ -293,9 +293,9 @@ struct TitleBar {
 fn show_title_bar(ui: &mut Ui, title: WidgetText) -> TitleBar {
     let inner_response = ui.horizontal(|ui| {
         let height = match &title {
-            WidgetText::RichText(text) => text
-                .font_height(&ui.fonts(), ui.style())
-                .max(ui.spacing().interact_size.y),
+            WidgetText::RichText(text) => {
+                text.font_height(&ui.fonts(), ui.style()) + 2. * ui.spacing().button_padding.y
+            }
             _ => ui.spacing().interact_size.y,
         };
         ui.set_min_height(height);

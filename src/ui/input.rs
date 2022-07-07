@@ -1,17 +1,8 @@
 use std::hash::Hash;
 
-use bevy::ecs::query::WorldQuery;
-use bevy_egui::EguiContext;
-use bevy_inspector_egui::egui::epaint::text::cursor;
-use bevy_pixel_camera::PixelProjection;
 use leafwing_input_manager::prelude::*;
 
-use crate::{
-    config::{EngineState, UpdateStageLabel},
-    game::map::Position,
-    prelude::*,
-    ui::{CursorPosition, Viewer},
-};
+use crate::{prelude::*, ui::Viewer};
 
 pub fn setup_input_map(mut commands: Commands, viewer_query: Query<Entity, With<Viewer>>) {
     let viewer_entity = viewer_query.single();

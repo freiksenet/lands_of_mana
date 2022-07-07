@@ -34,32 +34,35 @@ fn selected_window(
 ) {
     let Selected(selection) = selection_query.single();
     if !selection.is_empty() {
-        NinePatchWindow::new("Selected Units")
-            .fixed_size(egui::vec2(320., 160.))
-            .default_pos(egui::pos2(4., 300.))
-            .title_bar_nine_patch(
-                *gui_context
-                    .get_texture_id(TextureType::Window, "dark")
-                    .unwrap(),
-                egui::vec2(32., 32.),
-            )
-            .body_nine_patch(
-                *gui_context
-                    .get_texture_id(TextureType::Window, "bright")
-                    .unwrap(),
-                egui::vec2(32., 32.),
-            )
-            .frame(
-                egui::Frame::window(&egui_context.ctx_mut().style())
-                    .inner_margin(egui::style::Margin::symmetric(8., 0.)),
-            )
-            .show(egui_context.ctx_mut(), |ui| {
-                let entities = selection.entities();
-                for entity in entities {
-                    if let Ok(unit_type) = unit_query.get(entity) {
-                        ui.label(format!("{:?}", unit_type));
-                    }
+        NinePatchWindow::new(
+            egui::RichText::new("Selected Units")
+                .text_style(egui::TextStyle::Name("Heading2".into())),
+        )
+        .fixed_size(egui::vec2(320., 160.))
+        .default_pos(egui::pos2(4., 300.))
+        .title_bar_nine_patch(
+            *gui_context
+                .get_texture_id(TextureType::Window, "dark")
+                .unwrap(),
+            egui::vec2(32., 32.),
+        )
+        .body_nine_patch(
+            *gui_context
+                .get_texture_id(TextureType::Window, "bright")
+                .unwrap(),
+            egui::vec2(32., 32.),
+        )
+        .frame(
+            egui::Frame::window(&egui_context.ctx_mut().style())
+                .inner_margin(egui::style::Margin::symmetric(8., 0.)),
+        )
+        .show(egui_context.ctx_mut(), |ui| {
+            let entities = selection.entities();
+            for entity in entities {
+                if let Ok(unit_type) = unit_query.get(entity) {
+                    ui.label(format!("{:?}", unit_type));
                 }
-            });
+            }
+        });
     }
 }

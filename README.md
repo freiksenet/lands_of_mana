@@ -66,6 +66,7 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
 - [ ] ViewerMap should respect ordering and output stable ordering
 - [ ] Mouse controls for map
 - [ ] Province borders re-enable / redesign
+- [ ] There shoulrd be a logic to sorting selection target
 
 ## Project plan
 

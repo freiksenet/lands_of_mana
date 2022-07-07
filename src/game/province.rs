@@ -111,6 +111,7 @@ impl CityBundle {
                 ..Default::default()
             })
             .insert(super::world::OfPlayer(player_entity))
+            .insert(ui::Selectable {})
             .with_children(|builder| {
                 for x in 0..city_stats.size.0 {
                     for y in 0..city_stats.size.1 {

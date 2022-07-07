@@ -6,6 +6,7 @@ use crate::{
     config::{EngineState, UpdateStageLabel},
     game::{
         map::Position,
+        province::City,
         units::{Unit, UnitOrder, UnitOrders},
     },
     prelude::*,
@@ -129,12 +130,11 @@ fn drag_selection(
             &CursorPixelPosition,
             &CursorPosition,
             ChangeTrackers<CursorPosition>,
-            &CursorSelectionTarget,
             &mut CursorDragSelect,
         ),
         With<Viewer>,
     >,
-    selectable_query: Query<Entity, With<Selectable>>,
+    selectable_query: Query<Entity, (With<Selectable>, With<Unit>)>,
 ) {
     let input_action_state = input_action_query.single();
     let pressed = input_action_state.pressed(InputActions::Select);
@@ -145,30 +145,31 @@ fn drag_selection(
         pixel_position,
         cursor_position,
         cursor_position_tracker,
-        cursor_selection_target,
         mut cursor_drag_select,
     ) = viewer_query.single_mut();
 
-    if let CursorDragSelectType::Dragging(_, anchor_position, selection) = &mut cursor_drag_select.0
-    {
-        if cursor_position_tracker.is_changed() {
-            let bounding_box = (*anchor_position, cursor_position.bound_position);
-            let mut selections = Vec::new();
-            for entity in viewer_map.entities_in_bounding_box(&bounding_box) {
-                if let Ok(selectable_entity) = selectable_query.get(entity.entity()) {
-                    selections.push(selectable_entity);
+    if cursor_position_tracker.is_changed() {
+        if let CursorDragSelectType::Dragging(_, anchor_position, selection) =
+            &mut cursor_drag_select.0
+        {
+            if cursor_position_tracker.is_changed() {
+                let bounding_box = (*anchor_position, cursor_position.bound_position);
+                let mut selections = Vec::new();
+                for entity in viewer_map.entities_in_bounding_box(&bounding_box) {
+                    if let Ok(selectable_entity) = selectable_query.get(entity.entity()) {
+                        selections.push(selectable_entity);
+                    }
                 }
+                selection.select_units(selections);
             }
-            selection.select_units(selections);
+        } else if pressed && !just_pressed && !cursor_position.in_gui {
+            let selection = Selection::default();
+            cursor_drag_select.0 = CursorDragSelectType::Dragging(
+                pixel_position.0,
+                cursor_position.bound_position,
+                selection,
+            );
         }
-    } else if pressed && !just_pressed && !cursor_position.in_gui {
-        let mut selection = Selection::default();
-        selection.select_units(cursor_selection_target.0.entities());
-        cursor_drag_select.0 = CursorDragSelectType::Dragging(
-            pixel_position.0,
-            cursor_position.bound_position,
-            selection,
-        );
     }
 }
 
@@ -183,7 +184,8 @@ fn hover(
         ),
         (With<Viewer>, Changed<CursorPosition>),
     >,
-    selectable_query: Query<Entity, With<Selectable>>,
+    selectable_unit_query: Query<Entity, (With<Unit>, With<Selectable>)>,
+    selectable_city_query: Query<Entity, (With<City>, With<Selectable>)>,
 ) {
     if let Ok((
         viewer_map,
@@ -200,14 +202,34 @@ fn hover(
                     cursor_debug_tooltip_target.entities =
                         Some(possible_entities.iter().copied().collect());
                     for entity in possible_entities {
-                        if let Ok(selectable_entity) = selectable_query.get(entity.entity()) {
-                            nothing_to_select = false;
-                            if !cursor_selection_target.0.is_selected(selectable_entity) {
-                                cursor_selection_target.0.select_unit(selectable_entity);
-                                cursor_target_time.0.reset();
-                                cursor_target_time.0.unpause();
+                        match entity {
+                            EntityOnTile::City { city_entity, .. } => {
+                                if let Ok(selectable_entity) =
+                                    selectable_city_query.get(*city_entity)
+                                {
+                                    nothing_to_select = false;
+                                    if !cursor_selection_target.0.is_selected(selectable_entity) {
+                                        cursor_selection_target.0.select_city(selectable_entity);
+                                        cursor_target_time.0.reset();
+                                        cursor_target_time.0.unpause();
+                                    }
+                                    break;
+                                }
                             }
-                            break;
+                            EntityOnTile::Unit(unit_entity) => {
+                                if let Ok(selectable_entity) =
+                                    selectable_unit_query.get(*unit_entity)
+                                {
+                                    nothing_to_select = false;
+                                    if !cursor_selection_target.0.is_selected(selectable_entity) {
+                                        cursor_selection_target.0.select_unit(selectable_entity);
+                                        cursor_target_time.0.reset();
+                                        cursor_target_time.0.unpause();
+                                    }
+                                    break;
+                                }
+                            }
+                            _ => {}
                         }
                     }
                 }
@@ -239,13 +261,14 @@ fn select(
     if just_released {
         let (cursor_position, mut selected, cursor_selection_target, mut cursor_drag_select) =
             viewer_query.single_mut();
+
         if let CursorDragSelectType::Dragging(_, _, selection_target) = &mut cursor_drag_select.0 {
-            selected.0.select_units(selection_target.entities());
+            selected.0.select_entities(selection_target.entities());
             cursor_drag_select.0 = CursorDragSelectType::None;
         } else if !cursor_position.in_gui {
             selected
                 .0
-                .select_units(cursor_selection_target.0.entities());
+                .select_entities(cursor_selection_target.0.entities());
         }
     }
 }
@@ -259,11 +282,16 @@ fn contextual(
     let just_released = input_action_state.just_released(InputActions::Contextual);
     let (cursor_position, selected) = viewer_query.single();
     if just_released && cursor_position.exact_position_option.is_some() && !selected.0.is_empty() {
-        for entity in selected.0.entities() {
-            if let Ok(mut unit_orders) = unit_orders_query.get_mut(entity) {
-                unit_orders.new_order(UnitOrder::MoveToPosition {
-                    target_position: cursor_position.exact_position_option.unwrap(),
-                })
+        for selected_entity in selected.0.entities() {
+            match selected_entity {
+                SelectedEntity::Unit(entity) => {
+                    if let Ok(mut unit_orders) = unit_orders_query.get_mut(*entity) {
+                        unit_orders.new_order(UnitOrder::MoveToPosition {
+                            target_position: cursor_position.exact_position_option.unwrap(),
+                        })
+                    }
+                }
+                SelectedEntity::City(_) => todo!(),
             }
         }
     }

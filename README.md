@@ -68,6 +68,8 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
 - [ ] Province borders re-enable / redesign
 - [ ] There shoulrd be a logic to sorting selection target
 - [ ] Unit figure sprite rotation for movement
+- [ ] Revisit selection methods
+- [ ] Remake selection to indicate what is selected - multiple cities don't make sense
 
 ## Project plan
 

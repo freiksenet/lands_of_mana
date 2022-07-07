@@ -2,13 +2,16 @@ use bevy_egui::{egui, EguiContext};
 
 use crate::{
     config::{EngineState, UiSyncLabel},
-    game::units::{Unit, UnitType},
+    game::{
+        province::{City, CityType},
+        units::{Unit, UnitType},
+    },
     gui::{
         gui_context::{GuiContext, TextureType},
         widgets::*,
     },
     prelude::*,
-    ui::{Selected, Viewer},
+    ui::{Selected, SelectedEntity, Viewer},
 };
 
 pub struct SelectedWindowPlugin {}
@@ -31,6 +34,7 @@ fn selected_window(
     gui_context: Res<GuiContext>,
     selection_query: Query<&Selected, With<Viewer>>,
     unit_query: Query<&UnitType, With<Unit>>,
+    city_query: Query<&CityType, With<City>>,
 ) {
     let Selected(selection) = selection_query.single();
     if !selection.is_empty() {
@@ -59,8 +63,17 @@ fn selected_window(
         .show(egui_context.ctx_mut(), |ui| {
             let entities = selection.entities();
             for entity in entities {
-                if let Ok(unit_type) = unit_query.get(entity) {
-                    ui.label(format!("{:?}", unit_type));
+                match entity {
+                    SelectedEntity::Unit(entity) => {
+                        if let Ok(unit_type) = unit_query.get(*entity) {
+                            ui.label(format!("Unit: {:?}", unit_type));
+                        }
+                    }
+                    SelectedEntity::City(entity) => {
+                        if let Ok(city_type) = city_query.get(*entity) {
+                            ui.label(format!("City: {:?}", city_type));
+                        }
+                    }
                 }
             }
         });

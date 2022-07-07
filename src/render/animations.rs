@@ -2,7 +2,7 @@ use benimator;
 use bevy::ecs::query::QueryItem;
 
 use crate::{
-    game::units::{UnitFigure, UnitType},
+    game::units::{Unit, UnitFigure, UnitOrder, UnitOrders, UnitType},
     prelude::*,
     render::units::{FigureAnimationType, UnitSprite},
 };
@@ -20,6 +20,7 @@ impl Plugin for AnimationsRenderPlugin {
                     .with_system(run_animations)
                     .with_system(run_new_unit_animations)
                     .with_system(run_unit_animations)
+                    .with_system(unit_animations_for_order)
                     .into(),
             );
     }
@@ -65,6 +66,32 @@ fn run_new_unit_animations(
             animation_type: FigureAnimationType::Idle,
         });
     });
+}
+
+fn unit_animations_for_order(
+    unit_query: Query<(&UnitOrders, &Children), (With<Unit>, Changed<UnitOrders>)>,
+    mut animated_figures_query: Query<&mut Animation, With<UnitFigure>>,
+) {
+    for (orders, children) in unit_query.iter() {
+        let new_animation_type = match orders.peek_order() {
+            Some(UnitOrder::Move { .. }) | Some(UnitOrder::MoveToPosition { .. }) => {
+                FigureAnimationType::Walk
+            }
+            // Some(_) |
+            None => FigureAnimationType::Idle,
+        };
+        for child in children.iter() {
+            if let Ok(Animation::FigureAnimation {
+                ref mut animation_type,
+            }) = animated_figures_query
+                .get_mut(*child)
+                .as_mut()
+                .map(|m| m.as_mut())
+            {
+                *animation_type = new_animation_type;
+            }
+        }
+    }
 }
 
 fn run_unit_animations(

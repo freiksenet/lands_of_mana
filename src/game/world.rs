@@ -23,6 +23,12 @@ pub struct PlayerBundle {
 
 pub struct OfPlayer(pub Entity);
 
+impl Default for OfPlayer {
+    fn default() -> Self {
+        Self(Entity::from_raw(0))
+    }
+}
+
 #[derive(Bundle, Debug)]
 pub struct PlayerStockpileBundle {
     pub resource: StockpileResourceType,

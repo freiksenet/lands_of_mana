@@ -67,6 +67,7 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
 - [ ] Mouse controls for map
 - [ ] Province borders re-enable / redesign
 - [ ] There shoulrd be a logic to sorting selection target
+- [ ] Unit figure sprite rotation for movement
 
 ## Project plan
 
@@ -88,13 +89,15 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
     - [ ] units
     - [ ] sites
   - [ ] moving and ordering units
-    - [ ] basic pathfinding
+    - [x] basic pathfinding
     - [ ] terrain, terrain movement cost, blocking terrain
       - [ ] roads
       - [ ] rivers
       - [ ] cliffs
       - [ ] forests
       - [ ] mountains
+    - [ ] unit speeds
+    - [ ] actual pathfinding
   - [ ] city and city buildings
   - [ ] building new units
   - [ ] unit stats
@@ -110,6 +113,7 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
     - [ ] spell to damage unit
   - [ ] notification and event ui
   - [ ] unexplored terrain, fog of war, visibility
+  - [ ] contextual cursors and click effects
 - [ ] Phase 3 - exploring prototype gameplay - implementing all systems without content
   - [ ] combat, protected sites
   - [ ] basic neutral mob ai

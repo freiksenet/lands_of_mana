@@ -1,5 +1,6 @@
 use num_derive::FromPrimitive;
 
+use super::units::MoveDirection;
 use crate::prelude::*;
 
 #[derive(Component, Debug)]
@@ -77,10 +78,59 @@ impl Position {
         Position { x, y }
     }
 
+    pub fn from_tuple((x, y): (u32, u32)) -> Self {
+        Position { x, y }
+    }
+
     pub fn shift(&self, x: u32, y: u32) -> Position {
         Position {
             x: self.x + x,
             y: self.y + y,
+        }
+    }
+
+    pub fn move_to_direction(&mut self, direction: &MoveDirection) {
+        let x = self.x;
+        let y = self.y;
+        let (move_x, move_y) = match direction {
+            MoveDirection::NorthWest => (x - 1, y + 1),
+            MoveDirection::North => (x, y + 1),
+            MoveDirection::NorthEast => (x + 1, y + 1),
+            MoveDirection::East => (x + 1, y),
+            MoveDirection::SouthEast => (x + 1, y - 1),
+            MoveDirection::South => (x, y - 1),
+            MoveDirection::SouthWest => (x - 1, y - 1),
+            MoveDirection::West => (x - 1, y),
+        };
+        self.x = move_x;
+        self.y = move_y;
+    }
+
+    pub fn direction_to(&self, other: &Position) -> MoveDirection {
+        let x_diff = self.x as i32 - other.x as i32;
+        let y_diff = self.y as i32 - other.y as i32;
+        let x_diff_abs = x_diff.abs();
+        let y_diff_abs = y_diff.abs();
+        if x_diff_abs > y_diff_abs {
+            if x_diff > 0 {
+                MoveDirection::West
+            } else {
+                MoveDirection::East
+            }
+        } else if x_diff_abs == y_diff_abs {
+            if x_diff > 0 && y_diff < 0 {
+                MoveDirection::NorthWest
+            } else if x_diff < 0 && y_diff > 0 {
+                MoveDirection::NorthEast
+            } else if x_diff < 0 && y_diff < 0 {
+                MoveDirection::SouthEast
+            } else {
+                MoveDirection::SouthWest
+            }
+        } else if y_diff > 0 {
+            MoveDirection::South
+        } else {
+            MoveDirection::North
         }
     }
 }

@@ -4,7 +4,10 @@ use leafwing_input_manager::prelude::*;
 
 use crate::{
     config::{EngineState, UpdateStageLabel},
-    game::map::Position,
+    game::{
+        map::Position,
+        units::{Unit, UnitOrder, UnitOrders},
+    },
     prelude::*,
 };
 
@@ -42,6 +45,7 @@ impl Plugin for InputPlugin {
                     .with_system(drag_selection)
                     .with_system(hover)
                     .with_system(select)
+                    .with_system(contextual)
                     .into(),
             )
             .add_plugin(camera::CameraPlugin {});
@@ -242,6 +246,25 @@ fn select(
             selected
                 .0
                 .select_units(cursor_selection_target.0.entities());
+        }
+    }
+}
+
+fn contextual(
+    input_action_query: Query<&ActionState<InputActions>>,
+    viewer_query: Query<(&CursorPosition, &Selected), With<Viewer>>,
+    mut unit_orders_query: Query<&mut UnitOrders, With<Unit>>,
+) {
+    let input_action_state = input_action_query.single();
+    let just_released = input_action_state.just_released(InputActions::Contextual);
+    let (cursor_position, selected) = viewer_query.single();
+    if just_released && cursor_position.exact_position_option.is_some() && !selected.0.is_empty() {
+        for entity in selected.0.entities() {
+            if let Ok(mut unit_orders) = unit_orders_query.get_mut(entity) {
+                unit_orders.new_order(UnitOrder::MoveToPosition {
+                    target_position: cursor_position.exact_position_option.unwrap(),
+                })
+            }
         }
     }
 }

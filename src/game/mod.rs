@@ -9,8 +9,10 @@ pub mod province;
 pub mod units;
 pub mod world;
 
-use self::map::Position;
-use crate::prelude::*;
+use crate::{
+    game::{map::Position, units::unit_orders},
+    prelude::*,
+};
 
 pub struct GamePlugin {}
 
@@ -29,7 +31,7 @@ impl Plugin for GamePlugin {
             ConditionSet::new()
                 .label_and_after(config::GameTickStageLabel::UpdateEntities)
                 .run_in_state(InGameState::Running)
-                .with_system(noop)
+                .with_system(unit_orders)
                 .into(),
         );
         game_tick_stage.add_system_set(
@@ -64,8 +66,6 @@ impl Plugin for GamePlugin {
             );
     }
 }
-
-fn noop() {}
 
 fn setup_game_world(mut commands: Commands) {
     commands

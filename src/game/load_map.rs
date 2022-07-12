@@ -8,7 +8,10 @@ use tiled::{
     FiniteTileLayer, LayerType, Loader, Map, ObjectLayer, ObjectShape, PropertyValue, TileLayer,
 };
 
-use super::province::CityBundle;
+use super::{
+    map::{ForestType, MountainType, RoadType, TerrainTop},
+    province::CityBundle,
+};
 use crate::{
     game::map::{Position, TerrainBase, TerrainBundle, TerrainType},
     prelude::*,
@@ -25,6 +28,9 @@ pub fn load_map(
         .unwrap();
 
     let base_layer = get_tile_layer(&map, TileLayerName::Base);
+    let rivers_layer = get_tile_layer(&map, TileLayerName::Rivers);
+    let roads_layer = get_tile_layer(&map, TileLayerName::Roads);
+    let forests_and_mountains_layer = get_tile_layer(&map, TileLayerName::ForestsAndMountains);
     let width = base_layer.width();
     let height = base_layer.height();
 
@@ -60,6 +66,10 @@ pub fn load_map(
     for map_x in 0..width {
         for map_y in 0..height {
             let tile = base_layer.get_tile(map_x as i32, map_y as i32).unwrap();
+            let river = rivers_layer.get_tile(map_x as i32, map_y as i32);
+            let road = roads_layer.get_tile(map_x as i32, map_y as i32);
+            let forest_and_mountain =
+                forests_and_mountains_layer.get_tile(map_x as i32, map_y as i32);
             let center_point = point2((map_x * 16) as f32 + 8., (map_y * 16) as f32 + 8.);
             let province_option = province_polygons
                 .iter()
@@ -67,12 +77,22 @@ pub fn load_map(
             if let Some((province_entity, _)) = province_option {
                 let x = map_x;
                 let y = height - map_y - 1;
+                let terrain_top = match (river, road, forest_and_mountain) {
+                    (Some(_), None, _) => TerrainTop::River,
+                    (None, Some(_), _) => TerrainTop::Road(RoadType::Path),
+                    (Some(_), Some(_), _) => TerrainTop::RiverWithBridge(RoadType::Path),
+                    (_, _, Some(tile)) if tile.id() >= 1248 => {
+                        TerrainTop::Mountain(MountainType::Rock)
+                    }
+                    (_, _, Some(_)) => TerrainTop::Forest(ForestType::Pine),
+                    _ => TerrainTop::None,
+                };
                 let terrain = commands
                     .spawn_bundle(TerrainBundle {
                         province: game::province::InProvince(*province_entity),
                         position: Position::new(x, y),
                         base: TerrainBase(TerrainType::from_u32(tile.id()).unwrap()),
-
+                        top: terrain_top,
                         ..Default::default()
                     })
                     .id();
@@ -138,6 +158,9 @@ fn get_object_layer(map: &Map, layer: ObjectLayerName) -> ObjectLayer {
 #[derive(Clone, Copy, Debug, EnumString, EnumIter, Display)]
 enum TileLayerName {
     Base,
+    Rivers,
+    Roads,
+    ForestsAndMountains,
 }
 
 #[derive(Clone, Copy, Debug, EnumString, EnumIter, Display)]

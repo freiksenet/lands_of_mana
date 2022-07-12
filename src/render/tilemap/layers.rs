@@ -22,6 +22,12 @@ pub enum TilemapLayer {
     Base(LayerInner),
     Connectors(LayerInner),
     Borders(LayerInner),
+    Rivers(LayerInner),
+    Roads(LayerInner),
+    Forests(LayerInner),
+    Mountains(LayerInner),
+    Topology(LayerInner),
+    Decorations(LayerInner),
     Sites(LayerInner),
 }
 
@@ -55,6 +61,13 @@ impl TilemapLayer {
             TilemapLayerType::Connectors => TilemapLayer::Connectors(layer),
             TilemapLayerType::Borders => TilemapLayer::Borders(layer),
             TilemapLayerType::Sites => TilemapLayer::Sites(layer),
+            TilemapLayerType::Rivers => TilemapLayer::Rivers(layer),
+            TilemapLayerType::Roads => TilemapLayer::Roads(layer),
+            TilemapLayerType::Forests => TilemapLayer::Forests(layer),
+            TilemapLayerType::Mountains => TilemapLayer::Mountains(layer),
+
+            TilemapLayerType::Topology => TilemapLayer::Topology(layer),
+            TilemapLayerType::Decorations => TilemapLayer::Decorations(layer),
         }
     }
 
@@ -64,7 +77,13 @@ impl TilemapLayer {
             | TilemapLayer::Base(l)
             | TilemapLayer::Connectors(l)
             | TilemapLayer::Borders(l)
-            | TilemapLayer::Sites(l) => l,
+            | TilemapLayer::Sites(l)
+            | TilemapLayer::Rivers(l)
+            | TilemapLayer::Roads(l)
+            | TilemapLayer::Forests(l)
+            | TilemapLayer::Mountains(l)
+            | TilemapLayer::Topology(l)
+            | TilemapLayer::Decorations(l) => l,
         }
     }
 
@@ -74,7 +93,13 @@ impl TilemapLayer {
             | TilemapLayer::Base(l)
             | TilemapLayer::Connectors(l)
             | TilemapLayer::Borders(l)
-            | TilemapLayer::Sites(l) => l,
+            | TilemapLayer::Sites(l)
+            | TilemapLayer::Rivers(l)
+            | TilemapLayer::Roads(l)
+            | TilemapLayer::Forests(l)
+            | TilemapLayer::Mountains(l)
+            | TilemapLayer::Topology(l)
+            | TilemapLayer::Decorations(l) => l,
         }
     }
 
@@ -173,6 +198,72 @@ impl TilemapLayer {
                     },
                 )
             }
+            TilemapLayer::Rivers(_) => {
+                let (entity, bundle) = self.default_bundle_params();
+                (
+                    entity,
+                    TilemapBundle {
+                        texture_size: Tilemap2dTextureSize { x: 256., y: 256. },
+                        texture: TilemapTexture(tiles.roads_and_rivers.clone()),
+                        ..bundle
+                    },
+                )
+            }
+            TilemapLayer::Roads(_) => {
+                let (entity, bundle) = self.default_bundle_params();
+                (
+                    entity,
+                    TilemapBundle {
+                        texture_size: Tilemap2dTextureSize { x: 256., y: 256. },
+                        texture: TilemapTexture(tiles.roads_and_rivers.clone()),
+                        ..bundle
+                    },
+                )
+            }
+            TilemapLayer::Forests(_) => {
+                let (entity, bundle) = self.default_bundle_params();
+                (
+                    entity,
+                    TilemapBundle {
+                        texture_size: Tilemap2dTextureSize { x: 832., y: 464. },
+                        texture: TilemapTexture(tiles.forest_and_mountains.clone()),
+                        ..bundle
+                    },
+                )
+            }
+            TilemapLayer::Mountains(_) => {
+                let (entity, bundle) = self.default_bundle_params();
+                (
+                    entity,
+                    TilemapBundle {
+                        texture_size: Tilemap2dTextureSize { x: 832., y: 464. },
+                        texture: TilemapTexture(tiles.forest_and_mountains.clone()),
+                        ..bundle
+                    },
+                )
+            }
+            TilemapLayer::Topology(_) => {
+                let (entity, bundle) = self.default_bundle_params();
+                (
+                    entity,
+                    TilemapBundle {
+                        texture_size: Tilemap2dTextureSize { x: 192., y: 912. },
+                        texture: TilemapTexture(tiles.decorations.clone()),
+                        ..bundle
+                    },
+                )
+            }
+            TilemapLayer::Decorations(_) => {
+                let (entity, bundle) = self.default_bundle_params();
+                (
+                    entity,
+                    TilemapBundle {
+                        texture_size: Tilemap2dTextureSize { x: 192., y: 912. },
+                        texture: TilemapTexture(tiles.decorations.clone()),
+                        ..bundle
+                    },
+                )
+            }
         }
     }
 }
@@ -253,6 +344,55 @@ impl TilemapLayerManager {
                         map,
                         &TilemapLayerType::Borders,
                         ZLevel::Borders.into(),
+                    ),
+                ),
+                (
+                    TilemapLayerType::Rivers,
+                    TilemapLayer::new(
+                        builder,
+                        map,
+                        &TilemapLayerType::Rivers,
+                        ZLevel::Rivers.into(),
+                    ),
+                ),
+                (
+                    TilemapLayerType::Roads,
+                    TilemapLayer::new(builder, map, &TilemapLayerType::Roads, ZLevel::Roads.into()),
+                ),
+                (
+                    TilemapLayerType::Forests,
+                    TilemapLayer::new(
+                        builder,
+                        map,
+                        &TilemapLayerType::Forests,
+                        ZLevel::Forests.into(),
+                    ),
+                ),
+                (
+                    TilemapLayerType::Mountains,
+                    TilemapLayer::new(
+                        builder,
+                        map,
+                        &TilemapLayerType::Mountains,
+                        ZLevel::Mountains.into(),
+                    ),
+                ),
+                (
+                    TilemapLayerType::Topology,
+                    TilemapLayer::new(
+                        builder,
+                        map,
+                        &TilemapLayerType::Topology,
+                        ZLevel::Topology.into(),
+                    ),
+                ),
+                (
+                    TilemapLayerType::Decorations,
+                    TilemapLayer::new(
+                        builder,
+                        map,
+                        &TilemapLayerType::Decorations,
+                        ZLevel::Decorations.into(),
                     ),
                 ),
             ]);

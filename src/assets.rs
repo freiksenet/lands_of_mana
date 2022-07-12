@@ -30,6 +30,15 @@ pub struct TileAssets {
     #[asset(path = "tiles/fog_of_war_and_map.png")]
     pub fog_of_war_and_map: Handle<Image>,
 
+    #[asset(path = "tiles/decorations.png")]
+    pub decorations: Handle<Image>,
+
+    #[asset(path = "tiles/forest_and_mountains.png")]
+    pub forest_and_mountains: Handle<Image>,
+
+    #[asset(path = "tiles/roads_and_rivers.png")]
+    pub roads_and_rivers: Handle<Image>,
+
     #[asset(path = "sites/sites.png")]
     pub sites: Handle<Image>,
 }

@@ -1,4 +1,5 @@
 use num_derive::FromPrimitive;
+use strum_macros::{EnumIter, EnumString};
 
 use super::units::MoveDirection;
 use crate::prelude::*;
@@ -150,6 +151,50 @@ pub struct TerrainBundle {
     pub province: super::province::InProvince,
     pub position: Position,
     pub base: TerrainBase,
+    pub top: TerrainTop,
+}
+
+#[derive(Component, Debug, Default, Copy, Clone)]
+pub enum TerrainTop {
+    #[default]
+    None,
+    River,
+    Road(RoadType),
+    RiverWithBridge(RoadType),
+    Forest(ForestType),
+    Mountain(MountainType),
+    Cliff,
+    Decoration(u32),
+}
+
+impl TerrainTop {
+    pub fn is_river(&self) -> bool {
+        matches!(self, TerrainTop::River | TerrainTop::RiverWithBridge(_))
+    }
+}
+
+#[derive(Debug, Copy, Clone, EnumIter, EnumString)]
+pub enum RoadType {
+    Path,
+    BrownCobblestone,
+    BlueCobblestone,
+    Bricks,
+}
+
+#[derive(Debug, Copy, Clone, EnumIter, EnumString)]
+pub enum ForestType {
+    Beech,
+    Pine,
+    Spruce,
+    Oak,
+}
+
+#[derive(Debug, Copy, Clone, EnumIter, EnumString)]
+pub enum MountainType {
+    Dirt,
+    Sand,
+    Rock,
+    RockIceCapped,
 }
 
 /// Terrain number indicates priority ordering when rendering (higher = higher priority)

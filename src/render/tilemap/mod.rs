@@ -9,12 +9,11 @@ use bevy_ecs_tilemap::{
 mod layers;
 mod tile_selection;
 
-use self::tile_selection::TerrainCornersTexture;
 use crate::{
     assets,
     game::{
         self,
-        map::{Position, TerrainBase},
+        map::{Position, TerrainBase, TerrainTop},
         province::{CityTileIndex, CityType},
     },
 };
@@ -27,6 +26,7 @@ pub fn setup(
         Entity,
         &game::map::Position,
         &game::map::TerrainBase,
+        &game::map::TerrainTop,
         Option<&game::map::ProvinceBorder>,
     )>,
     city_tile_query: Query<(
@@ -54,20 +54,25 @@ pub fn setup(
         });
     });
 
-    let mut pos_to_terrain: HashMap<&game::map::Position, game::map::TerrainType> = HashMap::new();
+    let mut pos_to_terrain: HashMap<
+        &game::map::Position,
+        (game::map::TerrainType, game::map::TerrainTop),
+    > = HashMap::new();
 
-    for (_, position, &TerrainBase(terrain_type), _) in terrain_query.iter() {
-        pos_to_terrain.insert(position, terrain_type);
+    for (_, position, &TerrainBase(terrain_type), terrain_top, _) in terrain_query.iter() {
+        pos_to_terrain.insert(position, (terrain_type, *terrain_top));
     }
 
-    for (entity, position, TerrainBase(terrain_type), _border_option) in terrain_query.iter() {
+    for (entity, position, TerrainBase(terrain_type), terrain_top, _border_option) in
+        terrain_query.iter()
+    {
         let tile_pos: TilePos2d = TilePos2d {
             x: position.x,
             y: position.y,
         };
         let corner = neighbors_to_corner(
             temp_storage.get_neighboring_pos(&tile_pos),
-            terrain_type,
+            (terrain_type, terrain_top),
             &pos_to_terrain,
         );
 
@@ -82,6 +87,58 @@ pub fn setup(
             .collect();
         commands.entity(entity).with_children(|builder| {
             tilemap_layer_manager.insert_terrain_bundles(builder, &tile_pos, &mut bundles);
+
+            if let Some(texture_id) = corner.get_river_texture() {
+                tilemap_layer_manager.insert_tile_bundle(
+                    builder,
+                    &layers::TilemapLayerType::Rivers,
+                    &tile_pos,
+                    TileBundle {
+                        position: tile_pos,
+                        texture: TileTexture(texture_id),
+                        ..Default::default()
+                    },
+                );
+            }
+
+            if let Some(texture_id) = corner.get_road_texture() {
+                tilemap_layer_manager.insert_tile_bundle(
+                    builder,
+                    &layers::TilemapLayerType::Roads,
+                    &tile_pos,
+                    TileBundle {
+                        position: tile_pos,
+                        texture: TileTexture(texture_id),
+                        ..Default::default()
+                    },
+                );
+            }
+
+            if let Some(texture_id) = corner.get_forest_texture() {
+                tilemap_layer_manager.insert_tile_bundle(
+                    builder,
+                    &layers::TilemapLayerType::Forests,
+                    &tile_pos,
+                    TileBundle {
+                        position: tile_pos,
+                        texture: TileTexture(texture_id),
+                        ..Default::default()
+                    },
+                );
+            }
+
+            if let Some(texture_id) = corner.get_mountain_texture() {
+                tilemap_layer_manager.insert_tile_bundle(
+                    builder,
+                    &layers::TilemapLayerType::Mountains,
+                    &tile_pos,
+                    TileBundle {
+                        position: tile_pos,
+                        texture: TileTexture(texture_id),
+                        ..Default::default()
+                    },
+                );
+            }
         });
     }
 
@@ -106,12 +163,12 @@ pub fn setup(
 
 fn neighbors_to_corner(
     neighbors: [Option<TilePos2d>; 8],
-    base: &game::map::TerrainType,
-    pos_to_terrain: &HashMap<&game::map::Position, game::map::TerrainType>,
+    (base, top): (&game::map::TerrainType, &game::map::TerrainTop),
+    pos_to_terrain: &HashMap<&game::map::Position, (game::map::TerrainType, game::map::TerrainTop)>,
 ) -> tile_selection::TerrainCorners {
     let [north, south, west, east, north_west, north_east, south_west, south_east] = neighbors;
     tile_selection::TerrainCorners {
-        center: *base,
+        center: (*base, *top),
         north: unwrap_pos_to_terrain(north, base, pos_to_terrain),
         south: unwrap_pos_to_terrain(south, base, pos_to_terrain),
         west: unwrap_pos_to_terrain(west, base, pos_to_terrain),
@@ -126,11 +183,11 @@ fn neighbors_to_corner(
 fn unwrap_pos_to_terrain(
     tile_pos_option: Option<TilePos2d>,
     base: &game::map::TerrainType,
-    pos_to_terrain: &HashMap<&game::map::Position, game::map::TerrainType>,
-) -> game::map::TerrainType {
+    pos_to_terrain: &HashMap<&game::map::Position, (game::map::TerrainType, TerrainTop)>,
+) -> (game::map::TerrainType, TerrainTop) {
     *tile_pos_option
         .and_then(|pos| pos_to_terrain.get(&game::map::Position { x: pos.x, y: pos.y }))
-        .unwrap_or(base)
+        .unwrap_or(&(*base, TerrainTop::None))
 }
 
 fn build_background(

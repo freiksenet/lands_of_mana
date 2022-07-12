@@ -70,6 +70,9 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
 - [ ] Unit figure sprite rotation for movement
 - [ ] Revisit selection methods
 - [ ] Remake selection to indicate what is selected - multiple cities don't make sense
+- [ ] Direction indicators for units
+- [ ] Sites not as a tilemap object
+- [ ] Refactor the tile selection stuff
 
 ## Project plan
 

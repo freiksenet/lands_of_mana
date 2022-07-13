@@ -47,6 +47,10 @@ impl Tile {
         }
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.corners.is_empty()
+    }
+
     pub fn add(&mut self, piece: TilePiece) {
         self.corners.insert(piece);
     }
@@ -102,6 +106,30 @@ impl Tile {
         }
 
         Self::into_id(&new_corners)
+    }
+
+    pub fn sides_into_corners(&self) -> Tile {
+        let mut new_corners: HashSet<TilePiece> = self.corners.iter().copied().collect();
+        if new_corners.contains(&TilePiece::North) && new_corners.contains(&TilePiece::East) {
+            new_corners.insert(TilePiece::NorthEast);
+        }
+        if new_corners.contains(&TilePiece::East) && new_corners.contains(&TilePiece::South) {
+            new_corners.insert(TilePiece::SouthEast);
+        }
+        if new_corners.contains(&TilePiece::South) && new_corners.contains(&TilePiece::West) {
+            new_corners.insert(TilePiece::SouthWest);
+        }
+        if new_corners.contains(&TilePiece::West) && new_corners.contains(&TilePiece::North) {
+            new_corners.insert(TilePiece::NorthWest);
+        }
+        new_corners.remove(&TilePiece::North);
+        new_corners.remove(&TilePiece::East);
+        new_corners.remove(&TilePiece::South);
+        new_corners.remove(&TilePiece::West);
+
+        Tile {
+            corners: new_corners,
+        }
     }
 
     pub fn no_corners_id(&self) -> usize {
@@ -705,28 +733,26 @@ impl TerrainCorners {
     }
 
     pub fn get_forest_texture(&self) -> Option<u32> {
-        let forest_blob = self.get_forest_tile();
-        match (self.center.1, forest_blob) {
-            (TerrainTop::Forest(forest_type), _) => {
-                Some(get_base_forest_texture_id(forest_type) + 55)
-            }
-            (_, Some((tile, forest_type))) => Some(
+        let forest_tile = self.get_forest_tile();
+        match (self.center.1, forest_tile) {
+            (TerrainTop::Forest(forest_type), Some((tile, _))) => Some(
                 get_base_forest_texture_id(forest_type) + get_forest_or_mountain_texture_id(&tile),
             ),
+            (_, Some((tile, forest_type))) => get_forest_or_mountain_connector_texture_id(&tile)
+                .map(|index| index + get_base_forest_texture_id(forest_type)),
             _ => None,
         }
     }
 
     pub fn get_mountain_texture(&self) -> Option<u32> {
-        let mountain_blob = self.get_mountain_tile();
-        match (self.center.1, mountain_blob) {
-            (TerrainTop::Mountain(mountain_type), _) => {
-                Some(get_base_mountain_texture_id(mountain_type) + 55)
-            }
-            (_, Some((tile, mountain_type))) => Some(
+        let mountain_tile = self.get_mountain_tile();
+        match (self.center.1, mountain_tile) {
+            (TerrainTop::Mountain(mountain_type), Some((tile, _))) => Some(
                 get_base_mountain_texture_id(mountain_type)
                     + get_forest_or_mountain_texture_id(&tile),
             ),
+            (_, Some((tile, mountain_type))) => get_forest_or_mountain_connector_texture_id(&tile)
+                .map(|index| index + get_base_mountain_texture_id(mountain_type)),
             _ => None,
         }
     }
@@ -958,51 +984,124 @@ pub fn get_base_mountain_texture_id(mountain_type: MountainType) -> u32 {
     }
 }
 
+// Corners are main definer for forestful(mountainful) tiles, but sides are the only things that matter in forest-less tiles
+// Sides can affect foresty tiles that have no corners on that corner, so we normalize all dual sides into a corner
 pub fn get_forest_or_mountain_texture_id(tile: &Tile) -> u32 {
-    match (tile, tile.no_corners_tile()) {
-        (t, _) if t.is_exactly(&Tile::new(vec![TilePiece::NorthEast])) => 111,
-        (t, _) if t.is_exactly(&Tile::new(vec![TilePiece::SouthEast])) => 7,
-        (t, _) if t.is_exactly(&Tile::new(vec![TilePiece::SouthWest])) => 9,
-        (t, _) if t.is_exactly(&Tile::new(vec![TilePiece::NorthWest])) => 113,
+    match tile.sides_into_corners() {
+        t if t.is_empty() => 1,
+        t if t.is_exactly(&Tile::new(vec![TilePiece::NorthEast])) => 114,
+        t if t.is_exactly(&Tile::new(vec![TilePiece::SouthEast])) => 10,
+        t if t.is_exactly(&Tile::new(vec![TilePiece::SouthWest])) => 12,
+        t if t.is_exactly(&Tile::new(vec![TilePiece::NorthWest])) => 116,
 
-        (t, nc)
-            if t.is_exactly(&Tile::new(vec![TilePiece::NorthWest, TilePiece::NorthEast]))
-                || nc.is_exactly(&Tile::new(vec![TilePiece::North])) =>
+        t if t.is_exactly(&Tile::new(vec![TilePiece::NorthEast, TilePiece::SouthEast])) => 59,
+        t if t.is_exactly(&Tile::new(vec![TilePiece::SouthEast, TilePiece::SouthWest])) => 8,
+        t if t.is_exactly(&Tile::new(vec![TilePiece::SouthWest, TilePiece::NorthWest])) => 61,
+        t if t.is_exactly(&Tile::new(vec![TilePiece::NorthWest, TilePiece::NorthEast])) => 112,
+
+        t if t.is_exactly(&Tile::new(vec![TilePiece::NorthEast, TilePiece::SouthWest])) => 109,
+        t if t.is_exactly(&Tile::new(vec![TilePiece::NorthWest, TilePiece::SouthEast])) => 110,
+
+        t if t.is_exactly(&Tile::new(vec![
+            TilePiece::NorthEast,
+            TilePiece::SouthEast,
+            TilePiece::SouthWest,
+        ])) =>
         {
-            115
+            105
         }
-        (t, nc)
-            if t.is_exactly(&Tile::new(vec![TilePiece::NorthEast, TilePiece::SouthEast]))
-                || nc.is_exactly(&Tile::new(vec![TilePiece::East])) =>
+        t if t.is_exactly(&Tile::new(vec![
+            TilePiece::SouthEast,
+            TilePiece::SouthWest,
+            TilePiece::NorthWest,
+        ])) =>
         {
-            62
+            104
         }
-        (t, nc)
-            if t.is_exactly(&Tile::new(vec![TilePiece::SouthEast, TilePiece::SouthWest]))
-                || nc.is_exactly(&Tile::new(vec![TilePiece::South])) =>
+        t if t.is_exactly(&Tile::new(vec![
+            TilePiece::SouthWest,
+            TilePiece::NorthWest,
+            TilePiece::NorthEast,
+        ])) =>
         {
-            11
+            52
         }
-        (t, nc)
-            if t.is_exactly(&Tile::new(vec![TilePiece::SouthWest, TilePiece::NorthWest]))
-                || nc.is_exactly(&Tile::new(vec![TilePiece::West])) =>
+        t if t.is_exactly(&Tile::new(vec![
+            TilePiece::NorthWest,
+            TilePiece::NorthEast,
+            TilePiece::SouthEast,
+        ])) =>
         {
-            64
+            53
         }
 
-        (t, _) if t.is_exactly(&Tile::new(vec![TilePiece::NorthEast, TilePiece::SouthWest])) => 109,
-        (t, _) if t.is_exactly(&Tile::new(vec![TilePiece::NorthWest, TilePiece::SouthEast])) => 110,
-
-        (_, t) if t.is_exactly(&Tile::new(vec![TilePiece::North, TilePiece::East])) => 53,
-
-        (_, t) if t.is_exactly(&Tile::new(vec![TilePiece::East, TilePiece::South])) => 105,
-
-        (_, t) if t.is_exactly(&Tile::new(vec![TilePiece::South, TilePiece::West])) => 104,
-        (_, t) if t.is_exactly(&Tile::new(vec![TilePiece::West, TilePiece::North])) => 52,
-
-        b => {
-            println!("{:?}", b);
-            60
+        t if t.is_exactly(&Tile::new(vec![
+            TilePiece::NorthEast,
+            TilePiece::SouthEast,
+            TilePiece::SouthWest,
+            TilePiece::NorthWest,
+        ])) =>
+        {
+            55
         }
+
+        t => {
+            println!("{:?}", t);
+            1
+        }
+    }
+}
+
+fn get_forest_or_mountain_connector_texture_id(tile: &Tile) -> Option<u32> {
+    match tile {
+        t if t.is_at_least(&Tile::new(vec![
+            TilePiece::North,
+            TilePiece::East,
+            TilePiece::South,
+            TilePiece::West,
+        ])) =>
+        {
+            Some(60)
+        }
+
+        t if t.is_at_least(&Tile::new(vec![
+            TilePiece::North,
+            TilePiece::East,
+            TilePiece::South,
+        ])) =>
+        {
+            Some(62)
+        }
+        t if t.is_at_least(&Tile::new(vec![
+            TilePiece::East,
+            TilePiece::South,
+            TilePiece::West,
+        ])) =>
+        {
+            Some(11)
+        }
+        t if t.is_at_least(&Tile::new(vec![
+            TilePiece::South,
+            TilePiece::West,
+            TilePiece::North,
+        ])) =>
+        {
+            Some(64)
+        }
+        t if t.is_at_least(&Tile::new(vec![
+            TilePiece::West,
+            TilePiece::North,
+            TilePiece::East,
+        ])) =>
+        {
+            Some(115)
+        }
+
+        t if t.is_at_least(&Tile::new(vec![TilePiece::North, TilePiece::East])) => Some(111),
+        t if t.is_at_least(&Tile::new(vec![TilePiece::East, TilePiece::South])) => Some(7),
+        t if t.is_at_least(&Tile::new(vec![TilePiece::South, TilePiece::West])) => Some(9),
+        t if t.is_at_least(&Tile::new(vec![TilePiece::West, TilePiece::North])) => Some(113),
+
+        _ => None,
     }
 }

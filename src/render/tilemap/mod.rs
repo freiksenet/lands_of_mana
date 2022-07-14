@@ -72,7 +72,7 @@ pub fn setup(
         };
         let corner = neighbors_to_corner(
             temp_storage.get_neighboring_pos(&tile_pos),
-            (terrain_type, terrain_top),
+            (*terrain_type, *terrain_top),
             &pos_to_terrain,
         );
 
@@ -163,12 +163,12 @@ pub fn setup(
 
 fn neighbors_to_corner(
     neighbors: [Option<TilePos2d>; 8],
-    (base, top): (&game::map::TerrainType, &game::map::TerrainTop),
+    (base, top): (game::map::TerrainType, game::map::TerrainTop),
     pos_to_terrain: &HashMap<&game::map::Position, (game::map::TerrainType, game::map::TerrainTop)>,
 ) -> tile_selection::TerrainCorners {
     let [north, south, west, east, north_west, north_east, south_west, south_east] = neighbors;
     tile_selection::TerrainCorners {
-        center: (*base, *top),
+        center: (base, top),
         north: unwrap_pos_to_terrain(north, base, pos_to_terrain),
         south: unwrap_pos_to_terrain(south, base, pos_to_terrain),
         west: unwrap_pos_to_terrain(west, base, pos_to_terrain),
@@ -182,12 +182,12 @@ fn neighbors_to_corner(
 
 fn unwrap_pos_to_terrain(
     tile_pos_option: Option<TilePos2d>,
-    base: &game::map::TerrainType,
+    base: game::map::TerrainType,
     pos_to_terrain: &HashMap<&game::map::Position, (game::map::TerrainType, TerrainTop)>,
 ) -> (game::map::TerrainType, TerrainTop) {
     *tile_pos_option
         .and_then(|pos| pos_to_terrain.get(&game::map::Position { x: pos.x, y: pos.y }))
-        .unwrap_or(&(*base, TerrainTop::None))
+        .unwrap_or(&(base, TerrainTop::None))
 }
 
 fn build_background(

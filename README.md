@@ -106,8 +106,9 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
   - [ ] city and city buildings
   - [ ] building new units
   - [ ] unit stats
+  - [ ] unit combat
   - [ ] building new cities
-  - [ ] spellcasting ui and spending mana to cast spell
+  - [ ] spellcasting ui, mages etc
   - [ ] prototype "big window" ui for things like research, agent, etc
   - [ ] prototype spells
     - [ ] persistent spell with upkeep
@@ -119,6 +120,9 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
   - [ ] notification and event ui
   - [ ] unexplored terrain, fog of war, visibility
   - [ ] contextual cursors and click effects
+    - [x] display cursor image
+    - [ ] cursor click effect
+    - [ ] cursor types based on context
 - [ ] Phase 3 - exploring prototype gameplay - implementing all systems without content
   - [ ] combat, protected sites
   - [ ] basic neutral mob ai

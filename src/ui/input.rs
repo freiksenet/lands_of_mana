@@ -54,15 +54,15 @@ pub fn input_to_game_actions(
     let input_action_state = input_action_query.single();
     let mut world_action_state = world_action_query.single_mut();
 
-    if input_action_state.just_pressed(InputActions::Pause)
-        || (input_action_state.just_pressed(InputActions::TogglePause)
+    if input_action_state.just_released(InputActions::Pause)
+        || (input_action_state.just_released(InputActions::TogglePause)
             && game_state.0 == game::InGameState::Running)
     {
         world_action_state.press(game::actions::WorldActions::Pause)
     }
 
-    if input_action_state.just_pressed(InputActions::Resume)
-        || (input_action_state.just_pressed(InputActions::TogglePause)
+    if input_action_state.just_released(InputActions::Resume)
+        || (input_action_state.just_released(InputActions::TogglePause)
             && game_state.0 == game::InGameState::Paused)
     {
         world_action_state.press(game::actions::WorldActions::Resume)

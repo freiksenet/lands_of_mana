@@ -111,6 +111,9 @@ pub fn button(
 }
 
 pub fn uv_for_button_state(ui: &egui::Ui, response: &egui::Response) -> egui::Rect {
+    if response.hovered() {
+        ui.ctx().output().cursor_icon = egui::CursorIcon::PointingHand;
+    }
     let transform = RectTransform::from_to(
         egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(72., 24.)),
         egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1., 1.)),

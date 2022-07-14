@@ -40,11 +40,12 @@ fn debug_tooltip(
         entities: Some(entities),
     }) = debug_tooltip_query.get_single()
     {
+        let ctx = egui_context.ctx_mut();
         egui::Window::new("Debug Tooltip")
             .auto_sized()
             .min_width(400.)
             .anchor(egui::Align2::RIGHT_BOTTOM, egui::vec2(5., 5.))
-            .show(egui_context.ctx_mut(), |ui| {
+            .show(ctx, |ui| {
                 for entity in entities {
                     let text = match *entity {
                         EntityOnTile::Terrain(entity) => {

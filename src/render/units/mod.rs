@@ -188,6 +188,8 @@ pub fn set_unit_transform(
     };
 }
 
+pub struct WithOrderDirectionDisplay {}
+
 #[derive(Component, Debug)]
 pub struct WithSelectionBox {
     pub selection_display_type: SelectionDisplayType,

@@ -1,9 +1,11 @@
+mod cursor;
 mod debug_tooltip;
 mod resource_bar;
 mod selected_window;
 mod time_bar;
 mod title_bar;
 
+pub use cursor::*;
 pub use debug_tooltip::*;
 pub use resource_bar::*;
 pub use selected_window::*;

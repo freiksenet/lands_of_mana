@@ -1,4 +1,5 @@
 use bevy_egui::{egui, EguiContext};
+use leafwing_input_manager::prelude::ActionState;
 
 use crate::{
     config::{EngineState, UiSyncLabel},
@@ -8,6 +9,7 @@ use crate::{
         widgets::*,
     },
     prelude::*,
+    ui::InputActions,
 };
 
 pub struct TimeBarPlugin {}
@@ -30,6 +32,7 @@ fn time_bar(
     gui_context: Res<GuiContext>,
     game_state: Res<CurrentState<InGameState>>,
     game_time_query: Query<(&GameDay, &GameTick)>,
+    mut input_action_query: Query<&mut ActionState<InputActions>>,
 ) {
     let (GameDay(game_day), GameTick(game_tick)) = game_time_query.single();
     NinePatchWindow::new("Time Bar")
@@ -57,22 +60,33 @@ fn time_bar(
                     egui::RichText::new(format!("Tick\u{00A0}{:02}", game_tick + 1))
                         .text_style(egui::TextStyle::Body),
                 );
-                ui.add_enabled(
-                    game_state.0 == InGameState::Running,
+                let is_running = game_state.0 == InGameState::Running;
+                let pause = ui.add_enabled(
+                    is_running,
                     gui_context.icon_button(
                         &gui::ButtonType::Shallow,
                         &gui::ButtonSize::Medium,
                         "pause",
                     ),
                 );
-                ui.add_enabled(
-                    game_state.0 == InGameState::Paused,
+                if pause.clicked() && is_running {
+                    let mut input_action = input_action_query.single_mut();
+                    input_action.press(InputActions::Pause);
+                }
+
+                let resume = ui.add_enabled(
+                    !is_running,
                     gui_context.icon_button(
                         &gui::ButtonType::Shallow,
                         &gui::ButtonSize::Medium,
                         "resume",
                     ),
                 );
+
+                if resume.clicked() && !is_running {
+                    let mut input_action = input_action_query.single_mut();
+                    input_action.press(InputActions::Resume);
+                }
             });
         });
 }

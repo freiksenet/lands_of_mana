@@ -11,8 +11,44 @@ use crate::{
 #[derive(Debug)]
 pub struct GuiContext {
     textures: HashMap<(TextureType, String), egui::TextureId>,
+    texture_atlases: HashMap<egui::TextureId, EguiTextureAtlas>,
     style: GuiStyle,
     desired_width: u32,
+}
+
+#[derive(Debug)]
+pub struct EguiTextureAtlas {
+    pub texture_id: egui::TextureId,
+    rows: usize,
+    columns: usize,
+    tile_size: egui::Vec2,
+}
+
+impl EguiTextureAtlas {
+    pub fn get_uv_for_texture_id(&self, texture_id: usize) -> egui::Rect {
+        let full_uv = egui::Rect::from_min_size(
+            egui::Pos2::ZERO,
+            egui::vec2(
+                self.rows as f32 * self.tile_size.y,
+                self.columns as f32 * self.tile_size.x,
+            ),
+        );
+        let row = texture_id / self.columns;
+        let column = texture_id % self.columns;
+
+        let tile_uv = egui::Rect::from_min_size(
+            egui::pos2(
+                column as f32 * self.tile_size.x,
+                row as f32 * self.tile_size.y,
+            ),
+            self.tile_size,
+        );
+        egui::emath::RectTransform::from_to(
+            full_uv,
+            egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1., 1.)),
+        )
+        .transform_rect(tile_uv)
+    }
 }
 
 impl Default for GuiContext {
@@ -21,6 +57,7 @@ impl Default for GuiContext {
             desired_width: 1280,
             style: GuiStyle::default(),
             textures: HashMap::new(),
+            texture_atlases: HashMap::new(),
         }
     }
 }
@@ -49,18 +86,22 @@ impl Default for GuiStyle {
 impl GuiContext {
     pub fn setup(
         &mut self,
-        egui_context: &mut ResMut<EguiContext>,
-        windows: &Res<Windows>,
-        egui_settings: &mut ResMut<EguiSettings>,
-        asset_server: &Res<AssetServer>,
-        ui_assets: &Res<assets::UiAssets>,
-        icon_assets: &Res<assets::IconAssets>,
+        (egui_context, windows, egui_settings, asset_server, ui_assets, icon_assets, atlases): (
+            &mut ResMut<EguiContext>,
+            &mut ResMut<Windows>,
+            &mut ResMut<EguiSettings>,
+            &Res<AssetServer>,
+            &Res<assets::UiAssets>,
+            &Res<assets::IconAssets>,
+            &Res<Assets<TextureAtlas>>,
+        ),
     ) -> &Self {
-        let window = windows.get_primary().unwrap();
+        let window = windows.get_primary_mut().unwrap();
+        window.set_cursor_visibility(false);
         let window_width = window.physical_width();
         let scale = window_width as f64 / self.desired_width as f64;
         egui_settings.scale_factor = scale;
-        self.setup_textures(egui_context, asset_server, ui_assets, icon_assets)
+        self.setup_textures(egui_context, asset_server, ui_assets, icon_assets, atlases)
             .setup_font_assets(egui_context)
             .setup_styles(egui_context)
     }
@@ -150,6 +191,7 @@ impl GuiContext {
         asset_server: &Res<AssetServer>,
         ui_assets: &Res<assets::UiAssets>,
         icon_assets: &Res<assets::IconAssets>,
+        atlases: &Res<Assets<TextureAtlas>>,
     ) -> &Self {
         for handle in ui_assets.buttons.iter() {
             self.textures.insert(
@@ -178,6 +220,77 @@ impl GuiContext {
                 egui_context.add_image(handle.clone()),
             );
         }
+
+        self.add_texture_atlas(
+            (TextureType::Other, "cursors".to_string()),
+            EguiTextureAtlas {
+                texture_id: egui_context.add_image(
+                    atlases
+                        .get(ui_assets.cursors.clone_weak())
+                        .unwrap()
+                        .texture
+                        .clone(),
+                ),
+                rows: 8,
+                columns: 8,
+                tile_size: egui::vec2(16., 16.),
+            },
+        );
+
+        self.add_texture_atlas(
+            (TextureType::Other, "clicks".to_string()),
+            EguiTextureAtlas {
+                texture_id: egui_context.add_image(
+                    atlases
+                        .get(ui_assets.clicks.clone_weak())
+                        .unwrap()
+                        .texture
+                        .clone(),
+                ),
+                rows: 12,
+                columns: 4,
+                tile_size: egui::vec2(16., 16.),
+            },
+        );
+
+        self.add_texture_atlas(
+            (TextureType::Other, "directions".to_string()),
+            EguiTextureAtlas {
+                texture_id: egui_context.add_image(
+                    atlases
+                        .get(ui_assets.directions.clone_weak())
+                        .unwrap()
+                        .texture
+                        .clone(),
+                ),
+                rows: 16,
+                columns: 4,
+                tile_size: egui::vec2(16., 16.),
+            },
+        );
+
+        self.add_texture_atlas(
+            (TextureType::Other, "selectors".to_string()),
+            EguiTextureAtlas {
+                texture_id: egui_context.add_image(
+                    atlases
+                        .get(ui_assets.selectors.clone_weak())
+                        .unwrap()
+                        .texture
+                        .clone(),
+                ),
+                rows: 5,
+                columns: 4,
+                tile_size: egui::vec2(16., 16.),
+            },
+        );
+
+        self
+    }
+
+    fn add_texture_atlas(&mut self, key: (TextureType, String), atlas: EguiTextureAtlas) -> &Self {
+        self.textures.insert(key, atlas.texture_id);
+        self.texture_atlases.insert(atlas.texture_id, atlas);
         self
     }
 
@@ -187,6 +300,13 @@ impl GuiContext {
         name: &str,
     ) -> Option<&egui::TextureId> {
         self.textures.get(&(texture_type, name.to_owned()))
+    }
+
+    pub fn get_texture_atlas(&self, texture_type: TextureType, name: &str) -> &EguiTextureAtlas {
+        let texture_id = self.get_texture_id_unwrap(texture_type, name);
+        self.texture_atlases
+            .get(&texture_id)
+            .unwrap_or_else(|| panic!("Cannot find texture atlast {:?}", (texture_type, name)))
     }
 
     pub fn get_texture_id_unwrap(&self, texture_type: TextureType, name: &str) -> egui::TextureId {
@@ -251,6 +371,7 @@ pub enum TextureType {
     IconOutline,
     Window,
     Button,
+    Other,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Copy, EnumIter, EnumString)]

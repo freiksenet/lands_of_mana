@@ -14,7 +14,7 @@ impl Plugin for CameraPlugin {
             .add_enter_system(config::EngineState::InGame, setup)
             .add_system_set(
                 ConditionSet::new()
-                    .label(config::UpdateStageLabel::Input)
+                    .label_and_after(config::UpdateStageLabel::Input)
                     .run_in_state(config::EngineState::InGame)
                     .with_system(camera_control)
                     .into(),

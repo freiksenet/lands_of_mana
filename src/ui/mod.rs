@@ -53,7 +53,7 @@ impl Plugin for InputPlugin {
     }
 }
 
-#[derive(Bundle, Debug, Default)]
+#[derive(Bundle, Default)]
 pub struct ViewerBundle {
     pub viewer: Viewer,
     pub selected: Selected,
@@ -62,15 +62,128 @@ pub struct ViewerBundle {
     pub cursor: CursorBundle,
 }
 
-#[derive(Bundle, Debug, Default)]
+#[derive(Bundle, Default)]
 pub struct CursorBundle {
     pub cursor_pixel_position: CursorPixelPosition,
+    pub cursor_type: CursorType,
     pub cursor_position: CursorPosition,
     pub target_time: CursorTargetTime,
     pub drag_select: CursorDragSelect,
     pub selection_target: CursorSelectionTarget,
     // pub tooltip_target - what tooltip to show for this
     pub debug_tooltip: CursorDebugTooltipTarget,
+}
+#[derive(Component, Debug, Default)]
+pub struct CursorType {
+    kind: CursorKind,
+    color: CursorColor,
+}
+
+impl CursorType {
+    pub fn texture_id(&self) -> usize {
+        (match self.color {
+            CursorColor::White => 0,
+            CursorColor::Red => 8,
+            CursorColor::Green => 16,
+            CursorColor::Plain => 24,
+        }) + (match self.kind {
+            CursorKind::Arrow => 0,
+            CursorKind::Triangle => 1,
+            CursorKind::ShortTriangle => 2,
+            CursorKind::ThinTriangle => 3,
+            CursorKind::SmallArrow => 4,
+            CursorKind::SmallTriangle => 5,
+            CursorKind::SmallShortTriangle => 6,
+            CursorKind::SmallThinTriangle => 7,
+            CursorKind::Hand => 32,
+            CursorKind::HandFinger => 33,
+            CursorKind::SelectionBox => 34,
+            CursorKind::Target => 35,
+            CursorKind::WideTarget => 36,
+            CursorKind::FlatTarget => 37,
+            CursorKind::Talk => 38,
+            CursorKind::Settings => 39,
+        })
+    }
+
+    pub fn from_winit(cursor_icon: bevy::window::CursorIcon, is_clicked: bool) -> CursorType {
+        let color = if is_clicked {
+            CursorColor::White
+        } else {
+            CursorColor::Plain
+        };
+        CursorType {
+            color,
+            kind: match cursor_icon {
+                CursorIcon::Default => CursorKind::default(),
+                CursorIcon::Crosshair => CursorKind::Target,
+                CursorIcon::Hand => CursorKind::Hand,
+                CursorIcon::Arrow => CursorKind::Triangle,
+                // CursorIcon::Move => todo!(),
+                // CursorIcon::Text => todo!(),
+                // CursorIcon::Wait => todo!(),
+                // CursorIcon::Help => todo!(),
+                // CursorIcon::Progress => todo!(),
+                // CursorIcon::NotAllowed => todo!(),
+                // CursorIcon::ContextMenu => todo!(),
+                // CursorIcon::Cell => todo!(),
+                // CursorIcon::VerticalText => todo!(),
+                // CursorIcon::Alias => todo!(),
+                // CursorIcon::Copy => todo!(),
+                // CursorIcon::NoDrop => todo!(),
+                // CursorIcon::Grab => todo!(),
+                // CursorIcon::Grabbing => todo!(),
+                // CursorIcon::AllScroll => todo!(),
+                // CursorIcon::ZoomIn => todo!(),
+                // CursorIcon::ZoomOut => todo!(),
+                // CursorIcon::EResize => todo!(),
+                // CursorIcon::NResize => todo!(),
+                // CursorIcon::NeResize => todo!(),
+                // CursorIcon::NwResize => todo!(),
+                // CursorIcon::SResize => todo!(),
+                // CursorIcon::SeResize => todo!(),
+                // CursorIcon::SwResize => todo!(),
+                // CursorIcon::WResize => todo!(),
+                // CursorIcon::EwResize => todo!(),
+                // CursorIcon::NsResize => todo!(),
+                // CursorIcon::NeswResize => todo!(),
+                // CursorIcon::NwseResize => todo!(),
+                // CursorIcon::ColResize => todo!(),
+                // CursorIcon::RowResize => todo!(),
+                _ => CursorKind::default(),
+            },
+        }
+    }
+}
+
+#[derive(Debug, Default)]
+pub enum CursorColor {
+    #[default]
+    Plain,
+    White,
+    Green,
+    Red,
+}
+
+#[derive(Debug, Default)]
+pub enum CursorKind {
+    #[default]
+    Arrow,
+    Triangle,
+    ShortTriangle,
+    ThinTriangle,
+    SmallArrow,
+    SmallTriangle,
+    SmallShortTriangle,
+    SmallThinTriangle,
+    Hand,
+    HandFinger,
+    SelectionBox,
+    Target,
+    WideTarget,
+    FlatTarget,
+    Talk,
+    Settings,
 }
 
 #[derive(Component, Debug, Default)]

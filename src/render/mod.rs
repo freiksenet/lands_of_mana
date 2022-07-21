@@ -6,6 +6,7 @@ use iyes_loopless::prelude::*;
 use crate::prelude::*;
 
 pub mod animations;
+pub mod selection;
 pub mod tilemap;
 pub mod units;
 pub mod z_level;
@@ -22,7 +23,8 @@ impl Plugin for RenderPlugin {
         .add_plugin(LogDiagnosticsPlugin::default())
         .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_plugin(Tilemap2dPlugin)
-        .add_plugin(units::UnitsRenderPlugin {})
+        .add_plugin(selection::RenderSelectionPlugin {})
+        .add_plugin(units::RenderUnitsPlugin {})
         .add_plugin(animations::AnimationsRenderPlugin {})
         .add_enter_system(config::EngineState::LoadingGraphics, tilemap::setup)
         .add_system(proceed_to_ready_state.run_in_state(config::EngineState::LoadingGraphics));

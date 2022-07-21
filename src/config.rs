@@ -1,4 +1,5 @@
 use bevy::ecs::system::AsSystemLabel;
+use strum_macros::{EnumIter, EnumString};
 
 use crate::prelude::*;
 
@@ -107,4 +108,42 @@ impl LabelAndAfter for ConditionSet {
             self.label(label)
         }
     }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, EnumIter, EnumString, Default)]
+pub enum Direction {
+    #[default]
+    North,
+    NorthEast,
+    East,
+    SouthEast,
+    South,
+    SouthWest,
+    West,
+    NorthWest,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, EnumIter, EnumString, Default)]
+pub enum DirectionSides {
+    #[default]
+    North,
+    East,
+    South,
+    West,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, EnumIter, EnumString, Default)]
+pub enum DirectionCorners {
+    #[default]
+    NorthEast,
+    SouthEast,
+    SouthWest,
+    NorthWest,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, EnumIter, EnumString, Default)]
+pub enum DirectionSidesSymmetrical {
+    #[default]
+    North,
+    East,
 }

@@ -135,12 +135,14 @@ impl UnitOrders {
     }
 
     pub fn new_order(&mut self, order: UnitOrder) {
-        let mut orders = vec![];
-        if !self.orders.is_empty() && self.orders[0].is_interruptable() {
-            self.orders.truncate(1);
+        if !self.orders.is_empty() {
+            self.orders.truncate(if self.orders[0].is_interruptable() {
+                0
+            } else {
+                1
+            });
         }
-        orders.push(order);
-        self.orders = orders;
+        self.orders.insert(self.orders.len(), order);
     }
 
     pub fn insert_order(&mut self, order: UnitOrder) {
@@ -173,7 +175,7 @@ impl UnitOrders {
 #[derive(Debug)]
 pub enum UnitOrder {
     Move {
-        move_direction: MoveDirection,
+        move_direction: Direction,
         // 1-100
         progress: u32,
     },
@@ -187,30 +189,6 @@ impl UnitOrder {
         match self {
             &UnitOrder::Move { progress, .. } => progress <= 25,
             UnitOrder::MoveToPosition { .. } => true,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIter, EnumString)]
-pub enum MoveDirection {
-    NorthWest,
-    North,
-    NorthEast,
-    East,
-    SouthEast,
-    South,
-    SouthWest,
-    West,
-}
-
-impl MoveDirection {
-    pub fn cost(&self) -> f32 {
-        match self {
-            MoveDirection::North
-            | MoveDirection::East
-            | MoveDirection::South
-            | MoveDirection::West => 1.,
-            _ => 1.5,
         }
     }
 }

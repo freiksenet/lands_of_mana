@@ -69,26 +69,51 @@ fn run_new_unit_animations(
 }
 
 fn unit_animations_for_order(
-    unit_query: Query<(&UnitOrders, &Children), (With<Unit>, Changed<UnitOrders>)>,
-    mut animated_figures_query: Query<&mut Animation, With<UnitFigure>>,
+    unit_query: Query<(&UnitType, &UnitOrders, &Children), (With<Unit>, Changed<UnitOrders>)>,
+    mut animated_figures_query: Query<
+        (&UnitFigure, &mut Animation, &mut Transform),
+        With<UnitFigure>,
+    >,
 ) {
-    for (orders, children) in unit_query.iter() {
-        let new_animation_type = match orders.peek_order() {
-            Some(UnitOrder::Move { .. }) | Some(UnitOrder::MoveToPosition { .. }) => {
-                FigureAnimationType::Walk
-            }
-            // Some(_) |
-            None => FigureAnimationType::Idle,
+    for (unit_type, orders, children) in unit_query.iter() {
+        let figure_transforms = UnitSprite::get_figure_transforms(unit_type);
+        let (new_animation_type, offset) = match orders.peek_order() {
+            Some(UnitOrder::Move {
+                move_direction,
+                progress,
+            }) => (FigureAnimationType::Walk, {
+                let multiply =
+                    std::cmp::max_by(2., 10. * (*progress as f32) / 100., |l, r| l.total_cmp(r));
+                let mut base_vector = match move_direction {
+                    Direction::North => Vec2::new(0., 1.),
+                    Direction::NorthEast => Vec2::new(1., 1.),
+                    Direction::East => Vec2::new(1., 0.),
+                    Direction::SouthEast => Vec2::new(1., -1.),
+                    Direction::South => Vec2::new(0., -1.),
+                    Direction::SouthWest => Vec2::new(-1., -1.),
+                    Direction::West => Vec2::new(-1., 0.),
+                    Direction::NorthWest => Vec2::new(-1., 1.),
+                };
+
+                base_vector *= multiply;
+                base_vector
+            }),
+            Some(UnitOrder::MoveToPosition { .. }) => (FigureAnimationType::Walk, Vec2::ZERO),
+            _ => (FigureAnimationType::Idle, Vec2::ZERO),
         };
         for child in children.iter() {
-            if let Ok(Animation::FigureAnimation {
-                ref mut animation_type,
-            }) = animated_figures_query
-                .get_mut(*child)
-                .as_mut()
-                .map(|m| m.as_mut())
+            if let Ok((UnitFigure { index }, mut animation, mut transform)) =
+                animated_figures_query.get_mut(*child)
             {
+                let Animation::FigureAnimation {
+                    ref mut animation_type,
+                } = animation.as_mut();
                 *animation_type = new_animation_type;
+
+                *transform = *figure_transforms
+                    .get(*index)
+                    .unwrap_or(&Transform::identity());
+                transform.translation += offset.extend(0.);
             }
         }
     }

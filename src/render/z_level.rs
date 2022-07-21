@@ -15,7 +15,7 @@ pub enum ZLevel {
     Borders = 30,
     Units = 75,
     UnitDecorations = 80,
-    Cursor = 999,
+    OrderDirections = 81,
 }
 
 impl From<ZLevel> for f32 {

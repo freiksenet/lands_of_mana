@@ -1,6 +1,7 @@
 use crate::prelude::{
     egui,
     egui::{emath::RectTransform, layers::ShapeIdx},
+    *,
 };
 
 // pub trait NinePatchWindow {
@@ -156,13 +157,13 @@ fn small_long_nine_patch_ui(
         );
         let top_end = 0.33 * (height / size.y);
         let top_uv_rect = match uv_from_index(x, 0, width, 2) {
-            NinePatchCorner::NorthWest => {
+            NinePatchPart::Corner(Direction::NorthWest) => {
                 egui::Rect::from_min_max(egui::pos2(0., 0.), egui::pos2(0.33, top_end))
             }
-            NinePatchCorner::NorthEast => {
+            NinePatchPart::Corner(Direction::NorthEast) => {
                 egui::Rect::from_min_max(egui::pos2(0.66, 0.), egui::pos2(1., top_end))
             }
-            NinePatchCorner::North => {
+            NinePatchPart::Corner(Direction::North) => {
                 egui::Rect::from_min_max(egui::pos2(0.33, 0.), egui::pos2(0.66, top_end))
             }
             _ => egui::Rect::from_min_max(egui::pos2(0.33, 0.33), egui::pos2(0.66, 0.66)),
@@ -180,13 +181,13 @@ fn small_long_nine_patch_ui(
         );
         let bottom_end = 0.66 + 0.33 * (height / size.y);
         let bottom_uv_rect = match uv_from_index(x, 1, width, 2) {
-            NinePatchCorner::SouthWest => {
+            NinePatchPart::Corner(Direction::SouthWest) => {
                 egui::Rect::from_min_max(egui::pos2(0., bottom_end), egui::pos2(0.33, 1.))
             }
-            NinePatchCorner::SouthEast => {
+            NinePatchPart::Corner(Direction::SouthEast) => {
                 egui::Rect::from_min_max(egui::pos2(0.66, bottom_end), egui::pos2(1., 1.))
             }
-            NinePatchCorner::South => {
+            NinePatchPart::Corner(Direction::South) => {
                 egui::Rect::from_min_max(egui::pos2(0.33, bottom_end), egui::pos2(0.66, 1.))
             }
             _ => egui::Rect::from_min_max(egui::pos2(0.33, 0.33), egui::pos2(0.66, 0.66)),
@@ -245,60 +246,52 @@ fn big_nine_patch_ui(
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
-enum NinePatchCorner {
-    NorthWest,
-    North,
-    NorthEast,
-    East,
-    SouthEast,
-    South,
-    SouthWest,
-    West,
+pub enum NinePatchPart {
     Center,
+    Corner(Direction),
 }
 
-fn uv_from_index(x: u32, y: u32, width: u32, height: u32) -> NinePatchCorner {
+fn uv_from_index(x: u32, y: u32, width: u32, height: u32) -> NinePatchPart {
     match (x, y) {
-        (x, y) if x == 0 && y == 0 => NinePatchCorner::NorthWest,
-        (x, y) if x == width - 1 && y == 0 => NinePatchCorner::NorthEast,
-        (x, y) if x == 0 && y == height - 1 => NinePatchCorner::SouthWest,
-        (x, y) if x == width - 1 && y == height - 1 => NinePatchCorner::SouthEast,
-        (x, _) if x == 0 => NinePatchCorner::West,
-        (x, _) if x == width - 1 => NinePatchCorner::East,
-        (_, y) if y == 0 => NinePatchCorner::North,
-        (_, y) if y == height - 1 => NinePatchCorner::South,
-        _ => NinePatchCorner::Center,
+        (x, y) if x == 0 && y == 0 => NinePatchPart::Corner(Direction::NorthWest),
+        (x, y) if x == width - 1 && y == 0 => NinePatchPart::Corner(Direction::NorthEast),
+        (x, y) if x == 0 && y == height - 1 => NinePatchPart::Corner(Direction::SouthWest),
+        (x, y) if x == width - 1 && y == height - 1 => NinePatchPart::Corner(Direction::SouthEast),
+        (x, _) if x == 0 => NinePatchPart::Corner(Direction::West),
+        (x, _) if x == width - 1 => NinePatchPart::Corner(Direction::East),
+        (_, y) if y == 0 => NinePatchPart::Corner(Direction::North),
+        (_, y) if y == height - 1 => NinePatchPart::Corner(Direction::South),
+        _ => NinePatchPart::Center,
     }
 }
 
-fn big_nine_patch_uv(corner: NinePatchCorner) -> egui::Rect {
+fn big_nine_patch_uv(corner: NinePatchPart) -> egui::Rect {
     match corner {
-        NinePatchCorner::NorthWest => {
+        NinePatchPart::Corner(Direction::NorthWest) => {
             egui::Rect::from_min_max(egui::pos2(0., 0.), egui::pos2(0.33, 0.33))
         }
-        NinePatchCorner::NorthEast => {
+        NinePatchPart::Corner(Direction::NorthEast) => {
             egui::Rect::from_min_max(egui::pos2(0.66, 0.), egui::pos2(1., 0.33))
         }
-        NinePatchCorner::SouthWest => {
+        NinePatchPart::Corner(Direction::SouthWest) => {
             egui::Rect::from_min_max(egui::pos2(0., 0.66), egui::pos2(0.33, 1.))
         }
-        NinePatchCorner::SouthEast => {
+        NinePatchPart::Corner(Direction::SouthEast) => {
             egui::Rect::from_min_max(egui::pos2(0.66, 0.66), egui::pos2(1., 1.))
         }
-        NinePatchCorner::West => {
+        NinePatchPart::Corner(Direction::West) => {
             egui::Rect::from_min_max(egui::pos2(0., 0.33), egui::pos2(0.33, 0.66))
         }
-        NinePatchCorner::East => {
+        NinePatchPart::Corner(Direction::East) => {
             egui::Rect::from_min_max(egui::pos2(0.66, 0.33), egui::pos2(1., 0.66))
         }
-        NinePatchCorner::North => {
+        NinePatchPart::Corner(Direction::North) => {
             egui::Rect::from_min_max(egui::pos2(0.33, 0.), egui::pos2(0.66, 0.33))
         }
-        NinePatchCorner::South => {
+        NinePatchPart::Corner(Direction::South) => {
             egui::Rect::from_min_max(egui::pos2(0.33, 0.66), egui::pos2(0.66, 1.))
         }
-        NinePatchCorner::Center => {
+        NinePatchPart::Center => {
             egui::Rect::from_min_max(egui::pos2(0.33, 0.33), egui::pos2(0.66, 0.66))
         }
     }

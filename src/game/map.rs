@@ -1,7 +1,6 @@
 use num_derive::FromPrimitive;
 use strum_macros::{EnumIter, EnumString};
 
-use super::units::MoveDirection;
 use crate::prelude::*;
 
 #[derive(Component, Debug)]
@@ -90,48 +89,48 @@ impl Position {
         }
     }
 
-    pub fn move_to_direction(&mut self, direction: &MoveDirection) {
+    pub fn move_to_direction(&mut self, direction: &Direction) {
         let x = self.x;
         let y = self.y;
         let (move_x, move_y) = match direction {
-            MoveDirection::NorthWest => (x - 1, y + 1),
-            MoveDirection::North => (x, y + 1),
-            MoveDirection::NorthEast => (x + 1, y + 1),
-            MoveDirection::East => (x + 1, y),
-            MoveDirection::SouthEast => (x + 1, y - 1),
-            MoveDirection::South => (x, y - 1),
-            MoveDirection::SouthWest => (x - 1, y - 1),
-            MoveDirection::West => (x - 1, y),
+            Direction::NorthWest => (x - 1, y + 1),
+            Direction::North => (x, y + 1),
+            Direction::NorthEast => (x + 1, y + 1),
+            Direction::East => (x + 1, y),
+            Direction::SouthEast => (x + 1, y - 1),
+            Direction::South => (x, y - 1),
+            Direction::SouthWest => (x - 1, y - 1),
+            Direction::West => (x - 1, y),
         };
         self.x = move_x;
         self.y = move_y;
     }
 
-    pub fn direction_to(&self, other: &Position) -> MoveDirection {
+    pub fn direction_to(&self, other: &Position) -> Direction {
         let x_diff = self.x as i32 - other.x as i32;
         let y_diff = self.y as i32 - other.y as i32;
         let x_diff_abs = x_diff.abs();
         let y_diff_abs = y_diff.abs();
         if x_diff_abs > y_diff_abs {
             if x_diff > 0 {
-                MoveDirection::West
+                Direction::West
             } else {
-                MoveDirection::East
+                Direction::East
             }
         } else if x_diff_abs == y_diff_abs {
             if x_diff > 0 && y_diff < 0 {
-                MoveDirection::NorthWest
+                Direction::NorthWest
             } else if x_diff < 0 && y_diff > 0 {
-                MoveDirection::NorthEast
+                Direction::NorthEast
             } else if x_diff < 0 && y_diff < 0 {
-                MoveDirection::SouthEast
+                Direction::SouthEast
             } else {
-                MoveDirection::SouthWest
+                Direction::SouthWest
             }
         } else if y_diff > 0 {
-            MoveDirection::South
+            Direction::South
         } else {
-            MoveDirection::North
+            Direction::North
         }
     }
 }

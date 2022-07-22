@@ -1,8 +1,6 @@
 use std::time::Duration;
 
 use bevy::ecs::query::QueryItem;
-use bevy_prototype_lyon::prelude::*;
-use strum::IntoEnumIterator;
 use strum_macros::{EnumIter, EnumString};
 
 use crate::{

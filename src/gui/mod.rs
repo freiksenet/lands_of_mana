@@ -18,7 +18,8 @@ impl Plugin for GuiPlugin {
             .add_plugin(plugins::TitleBarPlugin {})
             .add_plugin(plugins::TimeBarPlugin {})
             .add_plugin(plugins::ResourceBarPlugin {})
-            .add_plugin(plugins::SelectedWindowPlugin {});
+            .add_plugin(plugins::SelectedWindowPlugin {})
+            .add_plugin(plugins::UnitBadgePlugin {});
     }
 }
 

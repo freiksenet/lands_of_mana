@@ -6,7 +6,6 @@ use strum_macros::{EnumIter, EnumString};
 
 use crate::{
     config::Direction,
-    game::units::UnitOrders,
     prelude::*,
     render::z_level::ZLevel,
     ui::{
@@ -326,9 +325,7 @@ fn update_drag_selection(
     {
         let window = windows.get_primary().unwrap();
         let (camera, camera_transform) = camera_transform_query.single();
-        if let Some(pixel_position) =
-            camera::camera_position_to_pixel_position(window, camera, camera_transform)
-        {
+        if let Some(pixel_position) = camera::cursor_to_world(window, camera, camera_transform) {
             let polygon = Polygon {
                 points: vec![
                     pixel_position,

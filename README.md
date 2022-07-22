@@ -73,6 +73,11 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
 - [ ] Direction indicators for units
 - [ ] Sites not as a tilemap object
 - [ ] Refactor the tile selection stuff
+- [ ] Camera transform thingie is broken when moving camera
+- [ ] Badges
+  - [ ] Unit badge for visible units only
+  - [ ] Figure out unit badge selection and ordering (and if it should also offset when unit moves - yes likely)
+  - [ ] Make unit animation for moving order actually apply to unit transform
 
 ## Project plan
 

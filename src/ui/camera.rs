@@ -22,7 +22,52 @@ impl Plugin for CameraPlugin {
     }
 }
 
-pub fn camera_position_to_pixel_position(
+/// Given a position in world space, use the camera to compute the viewport-space coordinates.
+///
+/// To get the coordinates in Normalized Device Coordinates, you should use
+/// [`world_to_ndc`](Self::world_to_ndc).
+pub fn world_to_viewport(
+    window: &Window,
+    camera: &Camera,
+    camera_transform: &Transform,
+    world_position: Vec2,
+) -> Option<Vec2> {
+    let target_size = Vec2::new(
+        window.physical_width() as f32,
+        window.physical_height() as f32,
+    );
+    let ndc_space_coords = world_to_ndc(camera, camera_transform, world_position)?;
+    // NDC z-values outside of 0 < z < 1 are outside the camera frustum and are thus not in viewport-space
+    if ndc_space_coords.z < 0.0 || ndc_space_coords.z > 1.0 {
+        return None;
+    }
+
+    // Once in NDC space, we can discard the z element and rescale x/y to fit the screen
+    Some((ndc_space_coords.truncate() + Vec2::ONE) / 2.0 * target_size)
+}
+
+/// Given a position in world space, use the camera's viewport to compute the Normalized Device Coordinates.
+///
+/// Values returned will be between -1.0 and 1.0 when the position is within the viewport.
+/// To get the coordinates in the render target's viewport dimensions, you should use
+/// [`world_to_viewport`](Self::world_to_viewport).
+pub fn world_to_ndc(
+    camera: &Camera,
+    camera_transform: &Transform,
+    world_position: Vec2,
+) -> Option<Vec3> {
+    // Build a transform to convert from world to NDC using camera data
+    let world_to_ndc: Mat4 = camera.projection_matrix * camera_transform.compute_matrix().inverse();
+    let ndc_space_coords: Vec3 = world_to_ndc.project_point3(world_position.extend(0.));
+
+    if !ndc_space_coords.is_nan() {
+        Some(ndc_space_coords)
+    } else {
+        None
+    }
+}
+
+pub fn cursor_to_world(
     window: &Window,
     camera: &Camera,
     camera_transform: &Transform,
@@ -30,12 +75,15 @@ pub fn camera_position_to_pixel_position(
     if let Some(window_cursor_position) = window.cursor_position() {
         let window_size = Vec2::new(window.width() as f32, window.height() as f32);
         let ndc = (window_cursor_position / window_size) * 2.0 - Vec2::ONE;
-        let ndc_to_world = camera_transform.compute_matrix() * camera.projection_matrix.inverse();
-        // use it to convert ndc to world-space coordinates
-        Some(ndc_to_world.project_point3(ndc.extend(-1.0)).truncate())
+        Some(ndc_to_world(camera, camera_transform, ndc))
     } else {
         None
     }
+}
+
+pub fn ndc_to_world(camera: &Camera, camera_transform: &Transform, ndc: Vec2) -> Vec2 {
+    let ndc_to_world = camera_transform.compute_matrix() * camera.projection_matrix.inverse();
+    ndc_to_world.project_point3(ndc.extend(-1.0)).truncate()
 }
 
 fn setup(mut commands: Commands, world_query: Query<Entity, With<game::GameWorld>>) {

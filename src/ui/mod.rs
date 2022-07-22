@@ -208,9 +208,7 @@ pub fn cursor_position(
 ) {
     let window = windows.get_primary().unwrap();
     let (camera, camera_transform) = camera_transform_query.single();
-    if let Some(pixel_position) =
-        camera::camera_position_to_pixel_position(window, camera, camera_transform)
-    {
+    if let Some(pixel_position) = camera::cursor_to_world(window, camera, camera_transform) {
         let map = map_query.single();
         let (exact_position_option, bound_position) =
             map.pixel_position_to_cursor_position(pixel_position);

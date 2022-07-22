@@ -14,6 +14,8 @@ pub struct GuiContext {
     texture_atlases: HashMap<egui::TextureId, EguiTextureAtlas>,
     style: GuiStyle,
     desired_width: u32,
+
+    computed_size: Option<egui::Vec2>,
 }
 
 #[derive(Debug)]
@@ -29,8 +31,8 @@ impl EguiTextureAtlas {
         let full_uv = egui::Rect::from_min_size(
             egui::Pos2::ZERO,
             egui::vec2(
-                self.rows as f32 * self.tile_size.y,
                 self.columns as f32 * self.tile_size.x,
+                self.rows as f32 * self.tile_size.y,
             ),
         );
         let row = texture_id / self.columns;
@@ -58,6 +60,7 @@ impl Default for GuiContext {
             style: GuiStyle::default(),
             textures: HashMap::new(),
             texture_atlases: HashMap::new(),
+            computed_size: None,
         }
     }
 }
@@ -99,11 +102,20 @@ impl GuiContext {
         let window = windows.get_primary_mut().unwrap();
         window.set_cursor_visibility(false);
         let window_width = window.physical_width();
+        let window_height = window.physical_height();
         let scale = window_width as f64 / self.desired_width as f64;
+        self.computed_size = Some(egui::vec2(
+            self.desired_width as f32,
+            (window_height as f64 / scale).floor() as f32,
+        ));
         egui_settings.scale_factor = scale;
         self.setup_textures(egui_context, asset_server, ui_assets, icon_assets, atlases)
             .setup_font_assets(egui_context)
             .setup_styles(egui_context)
+    }
+
+    pub fn egui_window_size(&self) -> Option<egui::Vec2> {
+        self.computed_size
     }
 
     fn setup_styles(&self, egui_context: &mut ResMut<EguiContext>) -> &Self {
@@ -282,6 +294,22 @@ impl GuiContext {
                 rows: 5,
                 columns: 4,
                 tile_size: egui::vec2(16., 16.),
+            },
+        );
+
+        self.add_texture_atlas(
+            (TextureType::Other, "badges".to_string()),
+            EguiTextureAtlas {
+                texture_id: egui_context.add_image(
+                    atlases
+                        .get(ui_assets.badges.clone_weak())
+                        .unwrap()
+                        .texture
+                        .clone(),
+                ),
+                rows: 2,
+                columns: 8,
+                tile_size: egui::vec2(16., 24.),
             },
         );
 

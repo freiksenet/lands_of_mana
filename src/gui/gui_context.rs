@@ -313,6 +313,38 @@ impl GuiContext {
             },
         );
 
+        self.add_texture_atlas(
+            (TextureType::Other, "unit_badges".to_string()),
+            EguiTextureAtlas {
+                texture_id: egui_context.add_image(
+                    atlases
+                        .get(ui_assets.unit_badges.clone_weak())
+                        .unwrap()
+                        .texture
+                        .clone(),
+                ),
+                rows: 5,
+                columns: 2,
+                tile_size: egui::vec2(12., 18.),
+            },
+        );
+
+        self.add_texture_atlas(
+            (TextureType::Other, "unit_badge_icons".to_string()),
+            EguiTextureAtlas {
+                texture_id: egui_context.add_image(
+                    atlases
+                        .get(ui_assets.unit_badge_icons.clone_weak())
+                        .unwrap()
+                        .texture
+                        .clone(),
+                ),
+                rows: 8,
+                columns: 2,
+                tile_size: egui::vec2(16., 16.),
+            },
+        );
+
         self
     }
 

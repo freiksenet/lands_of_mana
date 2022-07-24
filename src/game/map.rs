@@ -121,9 +121,9 @@ impl Position {
             if x_diff > 0 && y_diff < 0 {
                 Direction::NorthWest
             } else if x_diff < 0 && y_diff > 0 {
-                Direction::NorthEast
-            } else if x_diff < 0 && y_diff < 0 {
                 Direction::SouthEast
+            } else if x_diff < 0 && y_diff < 0 {
+                Direction::NorthEast
             } else {
                 Direction::SouthWest
             }

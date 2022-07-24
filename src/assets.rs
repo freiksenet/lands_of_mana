@@ -77,6 +77,14 @@ pub struct UiAssets {
     #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 24., columns = 8, rows = 2))]
     #[asset(path = "ui/badges.png")]
     pub badges: Handle<TextureAtlas>,
+
+    #[asset(texture_atlas(tile_size_x = 12., tile_size_y = 18., columns = 2, rows = 5))]
+    #[asset(path = "ui/unitbadges.png")]
+    pub unit_badges: Handle<TextureAtlas>,
+
+    #[asset(texture_atlas(tile_size_x = 16., tile_size_y = 16., columns = 8, rows = 2))]
+    #[asset(path = "ui/unit_badge_icons.png")]
+    pub unit_badge_icons: Handle<TextureAtlas>,
 }
 
 #[derive(AssetCollection)]

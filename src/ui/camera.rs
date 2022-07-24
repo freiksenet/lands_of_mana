@@ -1,7 +1,10 @@
 use bevy_pixel_camera::{PixelBorderPlugin, PixelCameraBundle, PixelCameraPlugin, PixelProjection};
 use leafwing_input_manager::prelude::*;
 
-use crate::prelude::*;
+use crate::{
+    config::{EngineState, Stage, UiSyncLabel, UpdateStageLabel},
+    prelude::*,
+};
 
 pub struct CameraPlugin {}
 
@@ -14,8 +17,8 @@ impl Plugin for CameraPlugin {
             .add_enter_system(config::EngineState::InGame, setup)
             .add_system_set(
                 ConditionSet::new()
-                    .label_and_after(config::UpdateStageLabel::Input)
-                    .run_in_state(config::EngineState::InGame)
+                    .label_and_after(UpdateStageLabel::Input)
+                    .run_in_state(EngineState::InGame)
                     .with_system(camera_control)
                     .into(),
             );
@@ -29,13 +32,10 @@ impl Plugin for CameraPlugin {
 pub fn world_to_viewport(
     window: &Window,
     camera: &Camera,
-    camera_transform: &Transform,
+    camera_transform: &GlobalTransform,
     world_position: Vec2,
 ) -> Option<Vec2> {
-    let target_size = Vec2::new(
-        window.physical_width() as f32,
-        window.physical_height() as f32,
-    );
+    let target_size = Vec2::new(window.width() as f32, window.height() as f32);
     let ndc_space_coords = world_to_ndc(camera, camera_transform, world_position)?;
     // NDC z-values outside of 0 < z < 1 are outside the camera frustum and are thus not in viewport-space
     if ndc_space_coords.z < 0.0 || ndc_space_coords.z > 1.0 {
@@ -53,7 +53,7 @@ pub fn world_to_viewport(
 /// [`world_to_viewport`](Self::world_to_viewport).
 pub fn world_to_ndc(
     camera: &Camera,
-    camera_transform: &Transform,
+    camera_transform: &GlobalTransform,
     world_position: Vec2,
 ) -> Option<Vec3> {
     // Build a transform to convert from world to NDC using camera data
@@ -70,7 +70,7 @@ pub fn world_to_ndc(
 pub fn cursor_to_world(
     window: &Window,
     camera: &Camera,
-    camera_transform: &Transform,
+    camera_transform: &GlobalTransform,
 ) -> Option<Vec2> {
     if let Some(window_cursor_position) = window.cursor_position() {
         let window_size = Vec2::new(window.width() as f32, window.height() as f32);
@@ -81,7 +81,7 @@ pub fn cursor_to_world(
     }
 }
 
-pub fn ndc_to_world(camera: &Camera, camera_transform: &Transform, ndc: Vec2) -> Vec2 {
+pub fn ndc_to_world(camera: &Camera, camera_transform: &GlobalTransform, ndc: Vec2) -> Vec2 {
     let ndc_to_world = camera_transform.compute_matrix() * camera.projection_matrix.inverse();
     ndc_to_world.project_point3(ndc.extend(-1.0)).truncate()
 }

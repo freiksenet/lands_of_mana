@@ -77,7 +77,7 @@ When game is unpaused (`InGameState::Running`), every fixed timestep (currently 
 - [ ] Badges
   - [ ] Unit badge for visible units only
   - [ ] Figure out unit badge selection and ordering (and if it should also offset when unit moves - yes likely)
-  - [ ] Make unit animation for moving order actually apply to unit transform
+  - [x] Make unit animation for moving order actually apply to unit transform
 
 ## Project plan
 

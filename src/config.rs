@@ -54,6 +54,7 @@ impl<Marker> OrderedSystemLabel<Marker> for UpdateStageLabel where
 pub enum UiSyncLabel {
     Sync,   // sync resource bindings for gui and update graphics components if needed
     Update, // do ui update
+    Camera, // move camera
 }
 
 impl OrderedLabel for UiSyncLabel {
@@ -61,6 +62,7 @@ impl OrderedLabel for UiSyncLabel {
         match self {
             UiSyncLabel::Sync => None,
             UiSyncLabel::Update => Some(UiSyncLabel::Sync),
+            UiSyncLabel::Camera => Some(UiSyncLabel::Update),
         }
     }
 }

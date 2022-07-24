@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{ops::Add, time::Duration};
 
 use bevy::ecs::query::QueryItem;
 use strum_macros::{EnumIter, EnumString};
@@ -6,7 +6,7 @@ use strum_macros::{EnumIter, EnumString};
 use crate::{
     game::{
         map::{Map, Position},
-        units::{Unit, UnitFigure, UnitType},
+        units::{Unit, UnitFigure, UnitOrder, UnitOrders, UnitType},
     },
     prelude::*,
     render::z_level::ZLevel,
@@ -106,6 +106,7 @@ pub enum FigureAnimationType {
 type UnitPositionTransformQuery = (
     Entity,
     &'static Position,
+    &'static UnitOrders,
     Option<&'static mut Transform>,
     Option<&'static GlobalTransform>,
 );
@@ -113,7 +114,10 @@ type UnitPositionTransformQuery = (
 pub fn run_unit_position_to_transfors(
     mut commands: Commands,
     map_query: Query<&game::map::Map>,
-    mut units_query: Query<UnitPositionTransformQuery, (With<Unit>, Changed<Position>)>,
+    mut units_query: Query<
+        UnitPositionTransformQuery,
+        (With<Unit>, Or<(Changed<Position>, Changed<UnitOrders>)>),
+    >,
 ) {
     let map = map_query.single();
     units_query.for_each_mut(|unit_item| set_unit_transform(&mut commands, map, unit_item))
@@ -155,12 +159,35 @@ pub fn run_new_figures_spritesheet(
 pub fn set_unit_transform(
     commands: &mut Commands,
     map: &Map,
-    (unit_entity, position, transform_option, global_transform_option): QueryItem<
+    (unit_entity, position, unit_orders, transform_option, global_transform_option): QueryItem<
         UnitPositionTransformQuery,
     >,
 ) {
     let base_position = map
         .position_to_pixel_position(position)
+        .add(match unit_orders.peek_order() {
+            Some(UnitOrder::Move {
+                move_direction,
+                progress,
+            }) => {
+                let multiply =
+                    std::cmp::max_by(2., 10. * (*progress as f32) / 100., |l, r| l.total_cmp(r));
+                let mut base_vector = match move_direction {
+                    Direction::North => Vec2::new(0., 1.),
+                    Direction::NorthEast => Vec2::new(1., 1.),
+                    Direction::East => Vec2::new(1., 0.),
+                    Direction::SouthEast => Vec2::new(1., -1.),
+                    Direction::South => Vec2::new(0., -1.),
+                    Direction::SouthWest => Vec2::new(-1., -1.),
+                    Direction::West => Vec2::new(-1., 0.),
+                    Direction::NorthWest => Vec2::new(-1., 1.),
+                };
+
+                base_vector *= multiply;
+                base_vector
+            }
+            _ => Vec2::ZERO,
+        })
         .extend(ZLevel::Units.into());
     match (transform_option, global_transform_option) {
         (Some(mut transform), Some(_)) => {

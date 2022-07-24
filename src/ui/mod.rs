@@ -202,7 +202,7 @@ pub struct CursorPosition {
 pub fn cursor_position(
     windows: Res<Windows>,
     egui_context_option: Option<ResMut<EguiContext>>,
-    camera_transform_query: Query<(&Camera, &Transform), With<PixelProjection>>,
+    camera_transform_query: Query<(&Camera, &GlobalTransform), With<PixelProjection>>,
     map_query: Query<&game::map::Map>,
     mut cursor_query: Query<(&mut CursorPixelPosition, &mut CursorPosition), With<Viewer>>,
 ) {

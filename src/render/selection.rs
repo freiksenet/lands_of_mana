@@ -6,6 +6,7 @@ use strum_macros::{EnumIter, EnumString};
 
 use crate::{
     config::Direction,
+    game::units::UnitOrders,
     prelude::*,
     render::z_level::ZLevel,
     ui::{
@@ -314,7 +315,7 @@ fn setup_drag_selection(mut commands: Commands, viewer_query: Query<Entity, With
 
 fn update_drag_selection(
     windows: Res<Windows>,
-    camera_transform_query: Query<(&Camera, &Transform), With<PixelProjection>>,
+    camera_transform_query: Query<(&Camera, &GlobalTransform), With<PixelProjection>>,
     viewer_query: Query<(&CursorDragSelect, ChangeTrackers<CursorDragSelect>), With<Viewer>>,
     mut drag_selection_box: Query<(&mut Path, &mut Visibility), With<DragSelectionBox>>,
 ) {
